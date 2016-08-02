@@ -26,6 +26,12 @@ class GameState(object):
 
     self.reset()
 
+  def set_record_screen_dir(self, record_screen_dir):
+    print("record_screen_dir", record_screen_dir)
+    self.ale.setString(b'record_screen_dir', str.encode(record_screen_dir))
+    self.ale.loadROM(ROM.encode('ascii'))
+    self.reset()
+
   def _process_frame(self, action, reshape):
     reward = self.ale.act(action)
     terminal = self.ale.game_over()

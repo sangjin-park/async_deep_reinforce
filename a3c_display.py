@@ -2,6 +2,8 @@
 import tensorflow as tf
 import numpy as np
 import random
+import argparse
+import os
 
 from game_state import GameState
 from game_ac_network import GameACFFNetwork, GameACLSTMNetwork
@@ -31,6 +33,11 @@ def choose_action(pi_values):
       return i;
   #fail safe
   return len(values)-1
+
+# arguments
+parser = argparse.ArgumentParser()
+parser.add_argument('--record-screen-dir', type=str, default="screen")
+args = parser.parse_args()
 
 # use CPU for display tool
 device = "/cpu:0"
@@ -72,11 +79,23 @@ else:
 
 game_state = GameState(0, display=True, no_op_max=0)
 
+episode = 0
 while True:
-  pi_values = global_network.run_policy(sess, game_state.s_t)
+  episode += 1
+  episode_record_dir = None
+  if args.record_screen_dir is not None:
+      episode_record_dir = os.path.join(args.record_screen_dir, str(episode))
+      os.makedirs(episode_record_dir)
+      game_state.set_record_screen_dir(episode_record_dir)
 
-  action = choose_action(pi_values)
-  game_state.process(action)
+  while True:
+    pi_values = global_network.run_policy(sess, game_state.s_t)
 
-  game_state.update()
+    action = choose_action(pi_values)
+    game_state.process(action)
 
+    game_state.update()
+
+    if game_state.terminal:
+      game_state.reset()
+      break
