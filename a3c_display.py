@@ -2,6 +2,8 @@
 import tensorflow as tf
 import numpy as np
 import random
+import argparse
+import os
 
 from game_state import GameState
 from game_ac_network import GameACFFNetwork, GameACLSTMNetwork
@@ -32,6 +34,11 @@ def choose_action(pi_values):
   #fail safe
   return len(values)-1
 
+# arguments
+parser = argparse.ArgumentParser()
+parser.add_argument('--record-screen-dir', type=str, default="screen")
+args = parser.parse_args()
+
 # use CPU for display tool
 device = "/cpu:0"
 
@@ -49,14 +56,14 @@ grad_applier = RMSPropApplier(learning_rate = learning_rate_input,
                               clip_norm = GRAD_NORM_CLIP,
                               device = device)
 
-training_threads = []
-for i in range(PARALLEL_SIZE):
-  training_thread = A3CTrainingThread(i, global_network, 1.0,
-                                      learning_rate_input,
-                                      grad_applier,
-                                      8000000,
-                                      device = device)
-  training_threads.append(training_thread)
+# training_threads = []
+# for i in range(PARALLEL_SIZE):
+#   training_thread = A3CTrainingThread(i, global_network, 1.0,
+#                                       learning_rate_input,
+#                                       grad_applier,
+#                                       8000000,
+#                                       device = device)
+#   training_threads.append(training_thread)
 
 sess = tf.Session()
 init = tf.initialize_all_variables()
@@ -66,17 +73,29 @@ saver = tf.train.Saver()
 checkpoint = tf.train.get_checkpoint_state(CHECKPOINT_DIR)
 if checkpoint and checkpoint.model_checkpoint_path:
   saver.restore(sess, checkpoint.model_checkpoint_path)
-  print "checkpoint loaded:", checkpoint.model_checkpoint_path
+  print("checkpoint loaded:", checkpoint.model_checkpoint_path)
 else:
-  print "Could not find old checkpoint"
+  print("Could not find old checkpoint")
 
 game_state = GameState(0, display=True, no_op_max=0)
 
+episode = 0
 while True:
-  pi_values = global_network.run_policy(sess, game_state.s_t)
+  episode += 1
+  episode_record_dir = None
+  if args.record_screen_dir is not None:
+      episode_record_dir = os.path.join(args.record_screen_dir, str(episode))
+      os.makedirs(episode_record_dir)
+      game_state.set_record_screen_dir(episode_record_dir)
 
-  action = choose_action(pi_values)
-  game_state.process(action)
+  while True:
+    pi_values = global_network.run_policy(sess, game_state.s_t)
 
-  game_state.update()
+    action = choose_action(pi_values)
+    game_state.process(action)
 
+    game_state.update()
+
+    if game_state.terminal:
+      game_state.reset()
+      break

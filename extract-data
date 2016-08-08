@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 filename"
+    exit 1
+fi
+fgrep "@END" $1 | sed -E "s/t=( *[0-9]*),s=( *[0-9]*),.*r=( *[0-9]*).*/\1,\2,\3/"
