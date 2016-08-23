@@ -1,0 +1,5 @@
+export A3C_OPTIONS="aa bb cc"
+export logfile=log.test1
+export command="python test.py $A3C_OPTIONS"
+echo $command > $logfile
+nohup $command >> $logfile &

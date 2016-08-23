@@ -3,19 +3,15 @@ import tensorflow as tf
 import numpy as np
 import random
 import time
+import sys
 
 from accum_trainer import AccumTrainer
 from game_state import GameState
-from game_state import ACTION_SIZE
 from game_ac_network import GameACFFNetwork, GameACLSTMNetwork
 
-from constants import GAMMA
-from constants import LOCAL_T_MAX
-from constants import ENTROPY_BETA
-from constants import USE_LSTM
+import options
+options = options.options
 
-import sys
-LOG_INTERVAL = 1000
 
 class A3CTrainingThread(object):
   def __init__(self,
@@ -25,20 +21,20 @@ class A3CTrainingThread(object):
                learning_rate_input,
                grad_applier,
                max_global_time_step,
-               device):
-
-    print("LOCAL_T_MAX=", LOCAL_T_MAX)
+               device,
+               options):
 
     self.thread_index = thread_index
     self.learning_rate_input = learning_rate_input
     self.max_global_time_step = max_global_time_step
+    self.options = options
 
-    if USE_LSTM:
-      self.local_network = GameACLSTMNetwork(ACTION_SIZE, thread_index, device)
+    if options.use_lstm:
+      self.local_network = GameACLSTMNetwork(options.action_size, thread_index, device)
     else:
-      self.local_network = GameACFFNetwork(ACTION_SIZE, device)
+      self.local_network = GameACFFNetwork(options.action_size, device)
 
-    self.local_network.prepare_loss(ENTROPY_BETA)
+    self.local_network.prepare_loss(options.entropy_beta)
 
     # TODO: don't need accum trainer anymore with batch
     self.trainer = AccumTrainer(device)
@@ -54,7 +50,7 @@ class A3CTrainingThread(object):
 
     self.sync = self.local_network.sync_from(global_network)
     
-    self.game_state = GameState(113 * thread_index)
+    self.game_state = GameState(random.randint(0, 2**16), options, thread_index = thread_index)
     
     self.local_t = 0
 
@@ -62,8 +58,10 @@ class A3CTrainingThread(object):
 
     self.episode_reward = 0
 
-    # variable controling log output
-    self.prev_local_t = 0
+    self.indent = "         |" * self.thread_index
+    self.steps = 0
+    self.no_reward_steps = 0
+    self.terminate_on_lives_lost = options.terminate_on_lives_lost and (self.thread_index != 0)
 
   def _anneal_learning_rate(self, global_time_step):
     learning_rate = self.initial_learning_rate * (self.max_global_time_step - global_time_step) / self.max_global_time_step
@@ -71,20 +69,20 @@ class A3CTrainingThread(object):
       learning_rate = 0.0
     return learning_rate
 
-  def choose_action(self, pi_values):
-    values = []
-    sum = 0.0
-    for rate in pi_values:
-      sum = sum + rate
-      value = sum
-      values.append(value)
-    
-    r = random.random() * sum
-    for i in range(len(values)):
-      if values[i] >= r:
-        return i;
-    #fail safe
-    return len(values)-1
+  def choose_action(self, pi_values, global_t):
+    # Increase randomness of choice if no reward term is too long
+    if self.no_reward_steps > self.options.no_reward_steps:
+      randomness = (self.no_reward_steps - self.options.no_reward_steps) * self.options.randomness
+      pi_values += randomness
+      pi_values /= sum(pi_values)
+      if self.local_t % self.options.randomness_log_interval == 0:
+        elapsed_time = time.time() - self.start_time
+        print("t={:6.0f},s={:9d},th={}:{}randomness={:.8f}".format(
+              elapsed_time, global_t, self.thread_index, self.indent, randomness))
+
+    pi_values -= np.finfo(np.float32).epsneg
+    action_samples = np.random.multinomial(self.options.num_experiments, pi_values)
+    return action_samples.argmax(0)
 
   def _record_score(self, sess, summary_writer, summary_op, score_input, score, global_t):
     summary_str = sess.run(summary_op, feed_dict={
@@ -100,6 +98,7 @@ class A3CTrainingThread(object):
     actions = []
     rewards = []
     values = []
+    liveses = [self.game_state.lives]
 
     terminal_end = False
 
@@ -111,30 +110,22 @@ class A3CTrainingThread(object):
 
     start_local_t = self.local_t
 
-    if USE_LSTM:
+    if self.options.use_lstm:
       start_lstm_state = self.local_network.lstm_state_out
     
     # t_max times loop
-    for i in range(LOCAL_T_MAX):
+    for i in range(self.options.local_t_max):
       pi_, value_ = self.local_network.run_policy_and_value(sess, self.game_state.s_t)
-      action = self.choose_action(pi_)
+      action = self.choose_action(pi_, global_t)
 
       states.append(self.game_state.s_t)
       actions.append(action)
       values.append(value_)
+      liveses.append(self.game_state.lives)
 
-      if (self.thread_index == 0) and (self.local_t % LOG_INTERVAL == 0):
+      if (self.thread_index == 0) and (self.local_t % self.options.log_interval == 0):
         print("pi={} (thread{})".format(pi_, self.thread_index))
         print(" V={} (thread{})".format(value_, self.thread_index))
-
-      if np.any(np.isnan(pi_)):
-        print("pi={} (thread{})".format(pi_, self.thread_index))
-        print(" V={} (thread{})".format(value_, self.thread_index))
-        print("##############################################################")
-        print("# 'nan' appeared in pi. PLEASE KILL ME by 'control-c'        #")
-        print("# thread{} will exit".format(self.thread_index))
-        print("##############################################################")
-        sys.exit(0)
 
       # process game
       self.game_state.process(action)
@@ -145,100 +136,128 @@ class A3CTrainingThread(object):
 
       self.episode_reward += reward
 
+      # add basic income
+      reward += self.options.basic_income
+
       # clip reward
       rewards.append( np.clip(reward, -1, 1) )
 
       self.local_t += 1
 
+      # terminate if the play time is too long
+      self.steps += 1
+      if self.steps > self.options.max_play_steps:
+        terminal = True
+
+      # terminate if lives lost
+      if self.terminate_on_lives_lost and (liveses[-2] > liveses[-1]):
+        terminal = True
+
+      # count no reward steps
+      if self.game_state.reward == 0.0:
+        self.no_reward_steps += 1
+      else:
+        self.no_reward_steps = 0
+
       # s_t1 -> s_t
       self.game_state.update()
       
-      if self.local_t % LOG_INTERVAL == 0:
-        indent = "         |" * self.thread_index
+      if self.local_t % self.options.log_interval == 0:
         elapsed_time = time.time() - self.start_time
-        print("t={:6.0f},s={:9d},th={}:{}r={:3d}    |".format(
-              elapsed_time, global_t, self.thread_index,
-              indent, self.episode_reward))
+        print("t={:6.0f},s={:9d},th={}:{}r={:3.0f}    |".format(
+              elapsed_time, global_t, self.thread_index, self.indent, self.episode_reward))
 
       if terminal:
         terminal_end = True
-        indent = "         |" * self.thread_index
         elapsed_time = time.time() - self.start_time
-        print("t={:6.0f},s={:9d},th={}:{}r={:3d}@END|".format(
-              elapsed_time, global_t, self.thread_index,
-              indent, self.episode_reward))
+        end_mark = "end" if self.terminate_on_lives_lost else "END"
+        print("t={:6.0f},s={:9d},th={}:{}r={:3.0f}@{}|".format(
+              elapsed_time, global_t, self.thread_index, self.indent, self.episode_reward, end_mark))
 
         self._record_score(sess, summary_writer, summary_op, score_input,
                            self.episode_reward, global_t)
           
         self.episode_reward = 0
+        self.steps = 0
+        self.no_reward_steps = 0
         self.game_state.reset()
-        if USE_LSTM:
+        if self.options.use_lstm:
           self.local_network.reset_state()
         break
 
-    R = 0.0
-    if not terminal_end:
-      R = self.local_network.run_value(sess, self.game_state.s_t)
-
-    actions.reverse()
-    states.reverse()
-    rewards.reverse()
-    values.reverse()
-
-    batch_si = []
-    batch_a = []
-    batch_td = []
-    batch_R = []
-
-    # compute and accmulate gradients
-    for(ai, ri, si, Vi) in zip(actions, rewards, states, values):
-      R = ri + GAMMA * R
-      td = R - Vi
-      a = np.zeros([ACTION_SIZE])
-      a[ai] = 1
-
-      batch_si.append(si)
-      batch_a.append(a)
-      batch_td.append(td)
-      batch_R.append(R)
-
-    if USE_LSTM:
-      batch_si.reverse()
-      batch_a.reverse()
-      batch_td.reverse()
-      batch_R.reverse()
-
-      sess.run( self.accum_gradients,
-                feed_dict = {
-                  self.local_network.s: batch_si,
-                  self.local_network.a: batch_a,
-                  self.local_network.td: batch_td,
-                  self.local_network.r: batch_R,
-                  self.local_network.initial_lstm_state: start_lstm_state,
-                  self.local_network.step_size : [len(batch_a)] } )
-    else:
-      sess.run( self.accum_gradients,
-                feed_dict = {
-                  self.local_network.s: batch_si,
-                  self.local_network.a: batch_a,
-                  self.local_network.td: batch_td,
-                  self.local_network.r: batch_R} )
-      
-    cur_learning_rate = self._anneal_learning_rate(global_t)
-
-    sess.run( self.apply_gradients,
-              feed_dict = { self.learning_rate_input: cur_learning_rate } )
-
-    if self.local_t - self.prev_local_t >= LOG_INTERVAL:
-      self.prev_local_t += LOG_INTERVAL
+    if self.thread_index == 0 and self.local_t % self.options.performance_log_interval < self.options.local_t_max:
       elapsed_time = time.time() - self.start_time
       steps_per_sec = global_t / elapsed_time
-      if self.thread_index == 0:
-        print("### Performance : {} STEPS in {:.0f} sec. {:.0f} STEPS/sec. {:.2f}M STEPS/hour".format(
-              global_t,  elapsed_time, steps_per_sec, steps_per_sec * 3600 / 1000000.))
+      print("### Performance : {} STEPS in {:.0f} sec. {:.0f} STEPS/sec. {:.2f}M STEPS/hour".format(
+            global_t,  elapsed_time, steps_per_sec, steps_per_sec * 3600 / 1000000.))
 
-    # return advanced local step size
-    diff_local_t = self.local_t - start_local_t
-    return diff_local_t
+    # don't train if following condition
+    if self.options.terminate_on_lives_lost and (self.thread_index == 0) and (not self.options.train_in_eval):
+      return 0
+    else:
+      R = 0.0
+      if not terminal_end:
+        R = self.local_network.run_value(sess, self.game_state.s_t)
+
+      actions.reverse()
+      states.reverse()
+      rewards.reverse()
+      values.reverse()
+
+      batch_si = []
+      batch_a = []
+      batch_td = []
+      batch_R = []
+
+      lives = liveses.pop()
+      # compute and accmulate gradients
+      for(ai, ri, si, Vi) in zip(actions, rewards, states, values):
+        # Consider the number of lives
+        if self.game_state.initial_lives != 0.0 and not self.terminate_on_lives_lost:
+          prev_lives = liveses.pop()
+          if prev_lives > lives:
+            R *= (1.0 - self.options.lives_lost_weight) + self.options.lives_lost_weight* (lives / prev_lives)
+            ri = self.options.lives_lost_reward
+            lives = prev_lives
+
+        R = ri + self.options.gamma * R
+        td = R - Vi
+        a = np.zeros([self.options.action_size])
+        a[ai] = 1
+
+        batch_si.append(si)
+        batch_a.append(a)
+        batch_td.append(td)
+        batch_R.append(R)
+
+      if self.options.use_lstm:
+        batch_si.reverse()
+        batch_a.reverse()
+        batch_td.reverse()
+        batch_R.reverse()
+
+        sess.run( self.accum_gradients,
+                  feed_dict = {
+                    self.local_network.s: batch_si,
+                    self.local_network.a: batch_a,
+                    self.local_network.td: batch_td,
+                    self.local_network.r: batch_R,
+                    self.local_network.initial_lstm_state: start_lstm_state,
+                    self.local_network.step_size : [len(batch_a)] } )
+      else:
+        sess.run( self.accum_gradients,
+                  feed_dict = {
+                    self.local_network.s: batch_si,
+                    self.local_network.a: batch_a,
+                    self.local_network.td: batch_td,
+                    self.local_network.r: batch_R} )
+        
+      cur_learning_rate = self._anneal_learning_rate(global_t)
+
+      sess.run( self.apply_gradients,
+                feed_dict = { self.learning_rate_input: cur_learning_rate } )
+
+      # return advanced local step size
+      diff_local_t = self.local_t - start_local_t
+      return diff_local_t
     

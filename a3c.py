@@ -13,20 +13,8 @@ from game_ac_network import GameACFFNetwork, GameACLSTMNetwork
 from a3c_training_thread import A3CTrainingThread
 from rmsprop_applier import RMSPropApplier
 
-from constants import ACTION_SIZE
-from constants import PARALLEL_SIZE
-from constants import INITIAL_ALPHA_LOW
-from constants import INITIAL_ALPHA_HIGH
-from constants import INITIAL_ALPHA_LOG_RATE
-from constants import MAX_TIME_STEP
-from constants import CHECKPOINT_DIR
-from constants import LOG_FILE
-from constants import RMSP_EPSILON
-from constants import RMSP_ALPHA
-from constants import GRAD_NORM_CLIP
-from constants import USE_GPU
-from constants import USE_LSTM
-
+import options
+options = options.options
 
 def log_uniform(lo, hi, rate):
   log_lo = math.log(lo)
@@ -35,21 +23,21 @@ def log_uniform(lo, hi, rate):
   return math.exp(v)
 
 device = "/cpu:0"
-if USE_GPU:
+if options.use_gpu:
   device = "/gpu:0"
 
-initial_learning_rate = log_uniform(INITIAL_ALPHA_LOW,
-                                    INITIAL_ALPHA_HIGH,
-                                    INITIAL_ALPHA_LOG_RATE)
+initial_learning_rate = log_uniform(options.initial_alpha_low,
+                                    options.initial_alpha_high,
+                                    options.initial_alpha_log_rate)
 
 global_t = 0
 
 stop_requested = False
 
-if USE_LSTM:
-  global_network = GameACLSTMNetwork(ACTION_SIZE, -1, device)
+if options.use_lstm:
+  global_network = GameACLSTMNetwork(options.action_size, -1, device)
 else:
-  global_network = GameACFFNetwork(ACTION_SIZE, device)
+  global_network = GameACFFNetwork(options.action_size, device)
 
 
 training_threads = []
@@ -57,17 +45,17 @@ training_threads = []
 learning_rate_input = tf.placeholder("float")
 
 grad_applier = RMSPropApplier(learning_rate = learning_rate_input,
-                              decay = RMSP_ALPHA,
+                              decay = options.rmsp_alpha,
                               momentum = 0.0,
-                              epsilon = RMSP_EPSILON,
-                              clip_norm = GRAD_NORM_CLIP,
+                              epsilon = options.rmsp_epsilon,
+                              clip_norm = options.grad_norm_clip,
                               device = device)
 
-for i in range(PARALLEL_SIZE):
+for i in range(options.parallel_size):
   training_thread = A3CTrainingThread(i, global_network, initial_learning_rate,
                                       learning_rate_input,
-                                      grad_applier, MAX_TIME_STEP,
-                                      device = device)
+                                      grad_applier, options.max_time_step,
+                                      device = device, options = options)
   training_threads.append(training_thread)
 
 # prepare session
@@ -82,11 +70,11 @@ score_input = tf.placeholder(tf.int32)
 tf.scalar_summary("score", score_input)
 
 summary_op = tf.merge_all_summaries()
-summary_writer = tf.train.SummaryWriter(LOG_FILE, sess.graph_def)
+summary_writer = tf.train.SummaryWriter(options.log_file, sess.graph_def)
 
 # init or load checkpoint with saver
 saver = tf.train.Saver()
-checkpoint = tf.train.get_checkpoint_state(CHECKPOINT_DIR)
+checkpoint = tf.train.get_checkpoint_state(options.checkpoint_dir)
 if checkpoint and checkpoint.model_checkpoint_path:
   saver.restore(sess, checkpoint.model_checkpoint_path)
   print("checkpoint loaded:", checkpoint.model_checkpoint_path)
@@ -95,7 +83,7 @@ if checkpoint and checkpoint.model_checkpoint_path:
   global_t = int(tokens[1])
   print(">>> global step set: ", global_t)
   # set wall time
-  wall_t_fname = CHECKPOINT_DIR + '/' + 'wall_t.' + str(global_t)
+  wall_t_fname = options.checkpoint_dir + '/' + 'wall_t.' + str(global_t)
   with open(wall_t_fname, 'r') as f:
     wall_t = float(f.read())
 else:
@@ -115,7 +103,7 @@ def train_function(parallel_index):
   while True:
     if stop_requested:
       break
-    if global_t > MAX_TIME_STEP:
+    if global_t > options.save_time_step:
       break
 
     diff_global_t = training_thread.process(sess, global_t, summary_writer,
@@ -129,7 +117,7 @@ def signal_handler(signal, frame):
   stop_requested = True
   
 train_threads = []
-for i in range(PARALLEL_SIZE):
+for i in range(options.parallel_size):
   train_threads.append(threading.Thread(target=train_function, args=(i,)))
   
 signal.signal(signal.SIGINT, signal_handler)
@@ -141,22 +129,21 @@ for t in train_threads:
   t.start()
 
 print('Press Ctrl+C to stop')
-signal.pause()
 
-print('Now saving data. Please wait')
-  
 for t in train_threads:
   t.join()
 
-if not os.path.exists(CHECKPOINT_DIR):
-  os.mkdir(CHECKPOINT_DIR)  
+print('Now saving data. Please wait')
+  
+if not os.path.exists(options.checkpoint_dir):
+  os.mkdir(options.checkpoint_dir)  
 
 # write wall time
 wall_t = time.time() - start_time
-wall_t_fname = CHECKPOINT_DIR + '/' + 'wall_t.' + str(global_t)
+wall_t_fname = options.checkpoint_dir + '/' + 'wall_t.' + str(global_t)
 with open(wall_t_fname, 'w') as f:
   f.write(str(wall_t))
 
-saver.save(sess, CHECKPOINT_DIR + '/' + 'checkpoint', global_step = global_t)
+saver.save(sess, options.checkpoint_dir + '/' + 'checkpoint', global_step = global_t)
 
 

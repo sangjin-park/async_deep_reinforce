@@ -1,12 +1,15 @@
 import unittest
 import numpy as np
 
+import options
+options = options.options
+
 from game_state import GameState
 
 class TestSequenceFunctions(unittest.TestCase):
 
   def test_process(self):
-    game_state = GameState(0)
+    game_state = GameState(0, options)
     
     before_s_t = np.array( game_state.s_t )
     

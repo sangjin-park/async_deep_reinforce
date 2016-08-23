@@ -6,53 +6,38 @@ import sys
 import matplotlib.pyplot as plt
 import random
 
-from game_state import GameState
 from game_ac_network import GameACFFNetwork, GameACLSTMNetwork
 from a3c_training_thread import A3CTrainingThread
 from rmsprop_applier import RMSPropApplier
 
-from constants import ACTION_SIZE
-from constants import PARALLEL_SIZE
-from constants import MAX_TIME_STEP
-from constants import CHECKPOINT_DIR
-from constants import RMSP_EPSILON
-from constants import RMSP_ALPHA
-from constants import GRAD_NORM_CLIP
-from constants import USE_GPU
-from constants import USE_LSTM
+import options
+options = options.options
 
 # use CPU for weight visualize tool
 device = "/cpu:0"
 
-if USE_LSTM:
-  global_network = GameACLSTMNetwork(ACTION_SIZE, -1, device)
+if options.use_lstm:
+  global_network = GameACLSTMNetwork(options.action_size, -1, device)
 else:
-  global_network = GameACFFNetwork(ACTION_SIZE, device)
+  global_network = GameACFFNetwork(options.action_size, device)
 
 training_threads = []
 
 learning_rate_input = tf.placeholder("float")
 
 grad_applier = RMSPropApplier(learning_rate = learning_rate_input,
-                              decay = RMSP_ALPHA,
+                              decay = options.rmsp_alpha,
                               momentum = 0.0,
-                              epsilon = RMSP_EPSILON,
-                              clip_norm = GRAD_NORM_CLIP,
+                              epsilon = options.rmsp_epsilon,
+                              clip_norm = options.grad_norm_clip,
                               device = device)
-
-# for i in range(PARALLEL_SIZE):
-#   training_thread = A3CTrainingThread(i, global_network, 1.0,
-#                                       learning_rate_input,
-#                                       grad_applier, MAX_TIME_STEP,
-#                                       device = device)
-#   training_threads.append(training_thread)
 
 sess = tf.Session()
 init = tf.initialize_all_variables()
 sess.run(init)
 
 saver = tf.train.Saver()
-checkpoint = tf.train.get_checkpoint_state(CHECKPOINT_DIR)
+checkpoint = tf.train.get_checkpoint_state(options.checkpoint_dir)
 if checkpoint and checkpoint.model_checkpoint_path:
   saver.restore(sess, checkpoint.model_checkpoint_path)
   print("checkpoint loaded:", checkpoint.model_checkpoint_path)

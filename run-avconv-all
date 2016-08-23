@@ -3,7 +3,7 @@
 cd screen
 for d in *; do
   cd $d
-  avconv -r 90 -i "%06d.png" -r 30 -b 1500k ../screen$d.mp4
+  avconv -r 90 -i "%06d.png" -r 30 -b 1500k ../$d.mp4
   cd ..
 done
 
