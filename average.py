@@ -1,7 +1,3 @@
-#!/home/iitsuka21/anaconda3/bin/python
-#!/home/itsukara/anaconda3/envs/tensorflow/bin/python
-#!/home/ubuntu/anaconda3/bin/python
-
 import numpy as np
 import argparse
 import time
