@@ -3,6 +3,7 @@ import argparse
 import matplotlib.pyplot as plt
 import time
 import re
+import sys
 from operator import itemgetter
 
 parser = argparse.ArgumentParser(description="plot data in A3C log file and update it periodically")
@@ -25,6 +26,8 @@ parser.add_argument('-n', '--interval', type=int, default=10,
                     help="interval of refresh (0 means no refresh)")
 parser.add_argument('-e', '--endmark', default="END",
                     help="End Mark of in reward line")
+parser.add_argument('--save', action='store_true',
+                    help="save graph to file 'filename.png' and don't display it")
 
 def read_data(f):
   data = []
@@ -85,6 +88,12 @@ while True:
       data.extend(new_data)
       ax.clear()
       draw_graph(ax, data)
-  interval = args.interval if args.interval > 0 else 1000000
-  plt.pause(args.interval)
+  if args.save:
+    savefilename = args.title + ".png"
+    plt.savefig(savefilename)
+    print("Graph saved to ", savefilename)
+    sys.exit(0)
+  else:
+    interval = args.interval if args.interval > 0 else 1000000
+    plt.pause(args.interval)
 
