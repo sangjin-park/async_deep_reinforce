@@ -20,6 +20,9 @@ for d in *; do
   if [ ! -d $d ]; then
       continue
   fi
+  if [ -e $d.mp4 ]; then
+      continue
+  fi
   echo "@@@ convert $d"
   cd $d
   avconv -y -i "%06d.png"  -b 1500k -s 168x168 ../$d.mp4
