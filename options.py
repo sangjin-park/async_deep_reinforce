@@ -19,6 +19,8 @@ GAMMA = 0.99 # discount factor for rewards
 ENTROPY_BETA = 0.01 # entropy regurarlization constant
 MAX_MEGA_STEP = 100 # max  learning step (in Mega step)
 SAVE_MEGA_STEP = 30 # save learning step (in Mega step)
+SAVE_TIME_INTERVAL = 3000000 # save interval (in step)
+MAX_TO_KEEP = None # maximum number of recent checkpoint files to keep (None means no-limit)
 
 GRAD_NORM_CLIP = 40.0 # gradient norm clipping
 USE_GPU = True # To use GPU, set True
@@ -43,8 +45,9 @@ RANDOMNESS_LOG_NUM = 30 # The number of randmness log
 COLOR_AVERAGING_IN_ALE = True # Color averagin in ALE
 COLOR_MAXIMIZING_IN_GS = False # Color maximizing in GS
 
-TRAIN_EPISODE_STEPS = 900 # Number of Train episode if the episode reward is new record
-REWARD_CLIP = 1.0 # Clip reward by -REWARD_CLIP - REWARD_CLIP. 0.0 means no clip
+TRAIN_EPISODE_STEPS = 0 # Number of Train episode if the episode reward is new record
+REWARD_CLIP = 1.0 # Clip reward by -REWARD_CLIP - REWARD_CLIP. (0.0 means no clip)
+RESET_MAX_REWARD = False # Reset max reward in new episode
 
 LOG_INTERVAL = 100 # Log output interval (steps)
 SCORE_LOG_INTERVAL = 900 # Score log output interval (steps)
@@ -94,6 +97,9 @@ parser.add_argument('--gamma', type=float, default=GAMMA)
 parser.add_argument('--entropy-beta', type=float, default=ENTROPY_BETA)
 parser.add_argument('--max-mega-step', type=int, default=MAX_MEGA_STEP)
 parser.add_argument('--save-mega-step', type=int, default=SAVE_MEGA_STEP)
+parser.add_argument('--save-time-interval', type=int, default=SAVE_TIME_INTERVAL)
+parser.add_argument('--max-to-keep', type=int, default=MAX_TO_KEEP)
+
 parser.add_argument('--grad-norm-clip', type=float, default=GRAD_NORM_CLIP)
 parser.add_argument('--use-gpu', type=str, default=str(USE_GPU))
 parser.add_argument('--use-lstm', type=str, default=str(USE_LSTM))
@@ -112,6 +118,7 @@ parser.add_argument('--color-averaging-in-ale', type=str, default=str(COLOR_AVER
 parser.add_argument('--color-maximizing-in-gs', type=str, default=str(COLOR_MAXIMIZING_IN_GS))
 parser.add_argument('--train-episode-steps', type=int, default=TRAIN_EPISODE_STEPS)
 parser.add_argument('--reward-clip', type=float, default=REWARD_CLIP)
+parser.add_argument('--reset-max-reward', type=str, default=str(RESET_MAX_REWARD))
 
 parser.add_argument('--log-interval', type=int, default=LOG_INTERVAL)
 parser.add_argument('--score-log-interval', type=int, default=SCORE_LOG_INTERVAL)
@@ -133,6 +140,7 @@ convert_boolean_arg(args, "terminate_on_lives_lost")
 convert_boolean_arg(args, "train_in_eval")
 convert_boolean_arg(args, "color_averaging_in_ale")
 convert_boolean_arg(args, "color_maximizing_in_gs")
+convert_boolean_arg(args, "reset_max_reward")
 convert_boolean_arg(args, "display")
 convert_boolean_arg(args, "verbose")
 

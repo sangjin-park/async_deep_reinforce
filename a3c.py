@@ -73,7 +73,7 @@ summary_op = tf.merge_all_summaries()
 summary_writer = tf.train.SummaryWriter(options.log_file, sess.graph_def)
 
 # init or load checkpoint with saver
-saver = tf.train.Saver()
+saver = tf.train.Saver(max_to_keep = options.max_to_keep)
 checkpoint = tf.train.get_checkpoint_state(options.checkpoint_dir)
 if checkpoint and checkpoint.model_checkpoint_path:
   saver.restore(sess, checkpoint.model_checkpoint_path)
@@ -86,14 +86,32 @@ if checkpoint and checkpoint.model_checkpoint_path:
   wall_t_fname = options.checkpoint_dir + '/' + 'wall_t.' + str(global_t)
   with open(wall_t_fname, 'r') as f:
     wall_t = float(f.read())
+  next_save_steps = (global_t + options.save_time_interval)//options.save_time_interval * options.save_time_interval
 else:
   print("Could not find old checkpoint")
   # set wall time
   wall_t = 0.0
+  next_save_steps = options.save_time_interval
+
+
+def save_data():
+  if not os.path.exists(options.checkpoint_dir):
+    os.mkdir(options.checkpoint_dir)  
+
+  # write wall time
+  wall_t = time.time() - start_time
+  wall_t_fname = options.checkpoint_dir + '/' + 'wall_t.' + str(global_t)
+  with open(wall_t_fname, 'w') as f:
+    f.write(str(wall_t))
+
+  saver.save(sess, options.checkpoint_dir + '/' + 'checkpoint', global_step = global_t)
+
+  print('@@@ Data saved at global_t={}'.format(global_t))
 
 
 def train_function(parallel_index):
   global global_t
+  global next_save_steps
   
   training_thread = training_threads[parallel_index]
   # set start_time
@@ -101,6 +119,10 @@ def train_function(parallel_index):
   training_thread.set_start_time(start_time)
 
   while True:
+    if (parallel_index == 0) and (global_t > next_save_steps):
+      save_data()
+      next_save_steps += options.save_time_interval
+      
     if stop_requested:
       break
     if global_t > options.save_time_step:
@@ -133,17 +155,4 @@ print('Press Ctrl+C to stop')
 for t in train_threads:
   t.join()
 
-print('Now saving data. Please wait')
-  
-if not os.path.exists(options.checkpoint_dir):
-  os.mkdir(options.checkpoint_dir)  
-
-# write wall time
-wall_t = time.time() - start_time
-wall_t_fname = options.checkpoint_dir + '/' + 'wall_t.' + str(global_t)
-with open(wall_t_fname, 'w') as f:
-  f.write(str(wall_t))
-
-saver.save(sess, options.checkpoint_dir + '/' + 'checkpoint', global_step = global_t)
-
-
+save_data()

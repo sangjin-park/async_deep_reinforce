@@ -66,7 +66,7 @@ class A3CTrainingThread(object):
     self.terminate_on_lives_lost = options.terminate_on_lives_lost and (self.thread_index != 0)
 
     if self.options.train_episode_steps > 0:
-      self.max_reward = -1.0 # test recording at startup
+      self.max_reward = 0.0
       self.episode_states = []
       self.episode_actions = []
       self.episode_rewards = []
@@ -205,6 +205,8 @@ class A3CTrainingThread(object):
                            self.episode_reward, global_t)
           
         if self.options.train_episode_steps > 0:
+          if self.options.reset_max_reward:
+            self.max_reward = 0.0
           self.episode_states = []
           self.episode_actions = []
           self.episode_rewards = []
@@ -248,11 +250,6 @@ class A3CTrainingThread(object):
           rewards = self.episode_rewards[-self.options.train_episode_steps:]
           values = self.episode_values[-self.options.train_episode_steps:]
           liveses = self.episode_liveses[-self.options.train_episode_steps-1:]
-          self.episode_states = []
-          self.episode_actions = []
-          self.episode_rewards = []
-          self.episode_values = []
-          self.episode_liveses = []
           self.max_reward = self.episode_reward
 
       R = 0.0
