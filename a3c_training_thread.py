@@ -4,6 +4,8 @@ import numpy as np
 import random
 import time
 import sys
+import cv2
+import os
 
 from accum_trainer import AccumTrainer
 from game_state import GameState
@@ -63,6 +65,18 @@ class A3CTrainingThread(object):
     self.no_reward_steps = 0
     self.terminate_on_lives_lost = options.terminate_on_lives_lost and (self.thread_index != 0)
 
+    if self.options.train_episode_steps > 0:
+      self.max_reward = -1.0 # test recording at startup
+      self.episode_states = []
+      self.episode_actions = []
+      self.episode_rewards = []
+      self.episode_values = []
+      self.episode_liveses = []
+
+    if (self.thread_index == 0) and (self.options.record_new_record_dir is not None):
+      os.makedirs(self.options.record_new_record_dir)
+    
+
   def _anneal_learning_rate(self, global_time_step):
     learning_rate = self.initial_learning_rate * (self.max_global_time_step - global_time_step) / self.max_global_time_step
     if learning_rate < 0.0:
@@ -99,6 +113,9 @@ class A3CTrainingThread(object):
     rewards = []
     values = []
     liveses = [self.game_state.lives]
+    if self.options.train_episode_steps > 0:
+      if self.episode_liveses == []:
+        self.episode_liveses.append(self.game_state.lives)
 
     terminal_end = False
 
@@ -136,11 +153,21 @@ class A3CTrainingThread(object):
 
       self.episode_reward += reward
 
+      # clip reward
+      if self.options.reward_clip > 0.0:
+        reward = np.clip(reward, -self.options.reward_clip, self.options.reward_clip)
+      rewards.append( reward )
+
       # add basic income
       reward += self.options.basic_income
 
-      # clip reward
-      rewards.append( np.clip(reward, -1, 1) )
+      # collect episode log
+      if self.options.train_episode_steps > 0:
+        self.episode_states.append(self.game_state.s_t)
+        self.episode_actions.append(action)
+        self.episode_rewards.append(reward)
+        self.episode_values.append(value_)
+        self.episode_liveses.append(self.game_state.lives)
 
       self.local_t += 1
 
@@ -162,7 +189,7 @@ class A3CTrainingThread(object):
       # s_t1 -> s_t
       self.game_state.update()
       
-      if self.local_t % self.options.log_interval == 0:
+      if self.local_t % self.options.score_log_interval == 0:
         elapsed_time = time.time() - self.start_time
         print("t={:6.0f},s={:9d},th={}:{}r={:3.0f}    |".format(
               elapsed_time, global_t, self.thread_index, self.indent, self.episode_reward))
@@ -177,6 +204,13 @@ class A3CTrainingThread(object):
         self._record_score(sess, summary_writer, summary_op, score_input,
                            self.episode_reward, global_t)
           
+        if self.options.train_episode_steps > 0:
+          self.episode_states = []
+          self.episode_actions = []
+          self.episode_rewards = []
+          self.episode_values = []
+          self.episode_liveses = []
+
         self.episode_reward = 0
         self.steps = 0
         self.no_reward_steps = 0
@@ -195,6 +229,32 @@ class A3CTrainingThread(object):
     if self.options.terminate_on_lives_lost and (self.thread_index == 0) and (not self.options.train_in_eval):
       return 0
     else:
+      if self.options.train_episode_steps > 0:
+        if self.episode_reward > self.max_reward:
+          print("@@@ New Record! : s={:9d},th={},lives={}".format(global_t,  self.thread_index, self.game_state.lives))
+          if self.options.record_new_record_dir is not None:
+            dirname = "s{:09d}-th{}-r{:03.0f}".format(global_t,  self.thread_index, self.episode_reward)
+            dirname = os.path.join(self.options.record_new_record_dir, dirname)
+            os.makedirs(dirname)
+            for index, state in enumerate(self.episode_states):
+              filename = "{:06d}.png".format(index)
+              filename = os.path.join(dirname, filename)
+              screen = np.array(state)[:,:,3]
+              screen_image = screen.reshape((84, 84)) * 255.
+              cv2.imwrite(filename, screen_image)
+            print("@@@ New Record screens saved to {}".format(dirname))
+          states = self.episode_states[-self.options.train_episode_steps:]
+          actions = self.episode_actions[-self.options.train_episode_steps:]
+          rewards = self.episode_rewards[-self.options.train_episode_steps:]
+          values = self.episode_values[-self.options.train_episode_steps:]
+          liveses = self.episode_liveses[-self.options.train_episode_steps-1:]
+          self.episode_states = []
+          self.episode_actions = []
+          self.episode_rewards = []
+          self.episode_values = []
+          self.episode_liveses = []
+          self.max_reward = self.episode_reward
+
       R = 0.0
       if not terminal_end:
         R = self.local_network.run_value(sess, self.game_state.s_t)
@@ -216,6 +276,8 @@ class A3CTrainingThread(object):
         if self.game_state.initial_lives != 0.0 and not self.terminate_on_lives_lost:
           prev_lives = liveses.pop()
           if prev_lives > lives:
+#            if self.options.train_episode_steps > 0 and self.episode_states == []:
+#              break
             R *= (1.0 - self.options.lives_lost_weight) + self.options.lives_lost_weight* (lives / prev_lives)
             ri = self.options.lives_lost_reward
             lives = prev_lives

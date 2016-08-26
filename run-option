@@ -1,0 +1,22 @@
+#!/bin/bash -x
+
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 rom-option-set-name"
+    exit 1
+fi
+
+case $1 in
+  "latest")
+    rom="montezuma_revenge.bin"
+    option="--action-size=18 --train-episode-steps=450 --lives-lost-reward=0.0 --reward-clip=0.0 --record-new-record-dir=new-record";;
+  *)
+    echo "Invalid option-set-name: $optionsn"
+    exit 1;;
+esac
+
+echo "rom=$rom"
+echo "option=$option"
+
+. activate tensorflow
+python a3c.py --rom $rom $option
+

@@ -33,7 +33,7 @@ NUM_EXPERIMENTS = 1 # number of experiments to determin action
 LIVES_LOST_REWARD =-1.0 # Reward for lives lost (-1.0 - 0.0)
 LIVES_LOST_WEIGHT = 1.0 # Weight of lives lost envet
 
-BASIC_INCOME_TIME  = 10 ** 10 # Basic income time for reward 1.0 in seconds (huge number means no basic income)
+BASIC_INCOME_TIME  = 10 ** 20 # Basic income time for reward 1.0 in seconds (huge number means no basic income)
 
 NO_REWARD_TIME  = 15 # Permitted No reward time in seconds
 
@@ -43,11 +43,17 @@ RANDOMNESS_LOG_NUM = 30 # The number of randmness log
 COLOR_AVERAGING_IN_ALE = True # Color averagin in ALE
 COLOR_MAXIMIZING_IN_GS = False # Color maximizing in GS
 
-LOG_INTERVAL = 900 # Log output interval (steps)
+TRAIN_EPISODE_STEPS = 900 # Number of Train episode if the episode reward is new record
+REWARD_CLIP = 1.0 # Clip reward by -REWARD_CLIP - REWARD_CLIP. 0.0 means no clip
+
+LOG_INTERVAL = 100 # Log output interval (steps)
+SCORE_LOG_INTERVAL = 900 # Score log output interval (steps)
 PERFORMANCE_LOG_INTERVAL = 1500 # Performance log output interval (steps)
 
 RECORD_SCREEN_DIR = None # Game screen (output of ALE) record directory 
 RECORD_GS_SCREEN_DIR = None # Game screen (input to A3C) record directory
+RECORD_NEW_RECORD_DIR = None # New record record dirctory
+
 DISPLAY = True # Display in a3c_display.py (set False in headless environment)
 VERBOSE = True # Output options (to record run parameter)
 
@@ -104,11 +110,17 @@ parser.add_argument('--randomness-time', type=float, default=RANDOMNESS_TIME)
 parser.add_argument('--randomness-log-num', type=int, default=RANDOMNESS_LOG_NUM)
 parser.add_argument('--color-averaging-in-ale', type=str, default=str(COLOR_AVERAGING_IN_ALE))
 parser.add_argument('--color-maximizing-in-gs', type=str, default=str(COLOR_MAXIMIZING_IN_GS))
+parser.add_argument('--train-episode-steps', type=int, default=TRAIN_EPISODE_STEPS)
+parser.add_argument('--reward-clip', type=float, default=REWARD_CLIP)
 
 parser.add_argument('--log-interval', type=int, default=LOG_INTERVAL)
+parser.add_argument('--score-log-interval', type=int, default=SCORE_LOG_INTERVAL)
 parser.add_argument('--performance-log-interval', type=int, default=PERFORMANCE_LOG_INTERVAL)
+
 parser.add_argument('--record-screen-dir', type=str, default=RECORD_SCREEN_DIR)
 parser.add_argument('--record-gs-screen-dir', type=str, default=RECORD_GS_SCREEN_DIR)
+parser.add_argument('--record-new-record-dir', type=str, default=RECORD_NEW_RECORD_DIR)
+
 parser.add_argument('--display', type=str, default=str(DISPLAY))
 
 parser.add_argument('-v', '--verbose', type=str, default=str(VERBOSE))
@@ -141,6 +153,8 @@ args.save_time_step = args.save_mega_step * 10**6
 
 args.max_play_steps = sec_to_steps(args, args.max_play_time)
 args.basic_income = 1.0 / sec_to_steps(args, args.basic_income_time)
+if args.basic_income < 1e-10:
+  args.basic_income = 0.0
 
 args.no_reward_steps = sec_to_steps(args, args.no_reward_time)
 
