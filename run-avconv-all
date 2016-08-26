@@ -1,11 +1,27 @@
 #!/bin/bash
 
-cd screen
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 directory"
+    exit 1
+fi
+
+if [ ! -e $1 ]; then
+    echo "$1: not exist"
+    exit 1
+fi
+
+if [ ! -d $1 ]; then
+    echo "$1: is not directory"
+    exit 1
+fi
+
+cd $1
 for d in *; do
+  if [ ! -d $d ]; then
+      continue
+  fi
+  echo "@@@ convert $d"
   cd $d
-  avconv -r 90 -i "%06d.png" -r 30 -b 1500k ../$d.mp4
+  avconv -y -i "%06d.png"  -b 1500k -s 168x168 ../$d.mp4
   cd ..
 done
-
-
-
