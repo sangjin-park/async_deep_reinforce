@@ -19,7 +19,7 @@ GAMMA = 0.99 # discount factor for rewards
 ENTROPY_BETA = 0.01 # entropy regurarlization constant
 MAX_MEGA_STEP = 100 # max  learning step (in Mega step)
 SAVE_MEGA_STEP = 30 # save learning step (in Mega step)
-SAVE_TIME_INTERVAL = 3000000 # save interval (in step)
+SAVE_MEGA_INTERVAL = 3 # save interval (in Mega step)
 MAX_TO_KEEP = None # maximum number of recent checkpoint files to keep (None means no-limit)
 
 GRAD_NORM_CLIP = 40.0 # gradient norm clipping
@@ -96,8 +96,11 @@ parser.add_argument('--initial-alpha-log-rate', type=float, default=INITIAL_ALPH
 parser.add_argument('--gamma', type=float, default=GAMMA)
 parser.add_argument('--entropy-beta', type=float, default=ENTROPY_BETA)
 parser.add_argument('--max-mega-step', type=int, default=MAX_MEGA_STEP)
+parser.add_argument('--max-time-step', type=int, default=None)
 parser.add_argument('--save-mega-step', type=int, default=SAVE_MEGA_STEP)
-parser.add_argument('--save-time-interval', type=int, default=SAVE_TIME_INTERVAL)
+parser.add_argument('--save-time-step', type=int, default=None)
+parser.add_argument('--save-mega-interval', type=int, default=SAVE_MEGA_INTERVAL)
+parser.add_argument('--save-time-interval', type=int, default=None)
 parser.add_argument('--max-to-keep', type=int, default=MAX_TO_KEEP)
 
 parser.add_argument('--grad-norm-clip', type=float, default=GRAD_NORM_CLIP)
@@ -105,17 +108,25 @@ parser.add_argument('--use-gpu', type=str, default=str(USE_GPU))
 parser.add_argument('--use-lstm', type=str, default=str(USE_LSTM))
 
 parser.add_argument('--max-play-time', type=int, default=MAX_PLAY_TIME)
+parser.add_argument('--max-play-steps', type=int, default=None)
 parser.add_argument('--terminate-on-lives-lost', type=str, default=str(TERMINATE_ON_LIVES_LOST))
 parser.add_argument('--train-in-eval', type=str, default=str(TRAIN_IN_EVAL))
 parser.add_argument('--num-experiments', type=int, default=NUM_EXPERIMENTS)
 parser.add_argument('--lives-lost-reward', type=float, default=LIVES_LOST_REWARD)
 parser.add_argument('--lives-lost-weight', type=float, default=LIVES_LOST_WEIGHT)
 parser.add_argument('--basic_income_time', type=int, default=BASIC_INCOME_TIME)
+parser.add_argument('--basic_income', type=int, default=None)
 parser.add_argument('--no-reward-time', type=int, default=NO_REWARD_TIME)
+parser.add_argument('--no-reward-steps', type=int, default=None)
 parser.add_argument('--randomness-time', type=float, default=RANDOMNESS_TIME)
+parser.add_argument('--randomness-steps', type=float, default=None)
+parser.add_argument('--randomness', type=float, default=None)
 parser.add_argument('--randomness-log-num', type=int, default=RANDOMNESS_LOG_NUM)
+parser.add_argument('--randomness-log-interval', type=int, default=None)
 parser.add_argument('--color-averaging-in-ale', type=str, default=str(COLOR_AVERAGING_IN_ALE))
+parser.add_argument('--frames_skip_in_ale', type=int, default=None)
 parser.add_argument('--color-maximizing-in-gs', type=str, default=str(COLOR_MAXIMIZING_IN_GS))
+parser.add_argument('--frames_skip_in_gs', type=int, default=None)
 parser.add_argument('--train-episode-steps', type=int, default=TRAIN_EPISODE_STEPS)
 parser.add_argument('--reward-clip', type=float, default=REWARD_CLIP)
 parser.add_argument('--reset-max-reward', type=str, default=str(RESET_MAX_REWARD))
@@ -150,25 +161,38 @@ if (args.color_averaging_in_ale and args.color_maximizing_in_gs) or\
   sys.exit(1)
 
 if args.color_averaging_in_ale:
-  args.frames_skip_in_ale = 4
+  if args.frames_skip_in_ale is None:
+    args.frames_skip_in_ale = 4
   args.frames_skip_in_gs = 1
 if args.color_maximizing_in_gs:
+  if args.frames_skip_in_gs is None:
+    args.frames_skip_in_gs = 4
   args.frames_skip_in_ale = 1
-  args.frames_skip_in_gs = 4
 
-args.max_time_step = args.max_mega_step * 10**6
-args.save_time_step = args.save_mega_step * 10**6
+if args.max_time_step is None:
+  args.max_time_step = args.max_mega_step * 10**6
+if args.save_time_step is None:
+  args.save_time_step = args.save_mega_step * 10**6
+if args.save_time_interval is None:
+  args.save_time_interval = args.save_mega_interval * 10**6
 
-args.max_play_steps = sec_to_steps(args, args.max_play_time)
-args.basic_income = 1.0 / sec_to_steps(args, args.basic_income_time)
+if args.max_play_steps is None:
+  args.max_play_steps = sec_to_steps(args, args.max_play_time)
+
+if args.basic_income is None:
+  args.basic_income = 1.0 / sec_to_steps(args, args.basic_income_time)
 if args.basic_income < 1e-10:
   args.basic_income = 0.0
 
-args.no_reward_steps = sec_to_steps(args, args.no_reward_time)
+if args.no_reward_steps is None:
+  args.no_reward_steps = sec_to_steps(args, args.no_reward_time)
 
-args.randomness_steps = sec_to_steps(args, args.randomness_time)
-args.randomness = 1.0 / args.randomness_steps
-args.randomness_log_interval = args.randomness_steps / args.randomness_log_num
+if args.randomness_steps is None:
+  args.randomness_steps = sec_to_steps(args, args.randomness_time)
+if args.randomness is None:
+  args.randomness = 1.0 / args.randomness_steps
+if args.randomness_log_interval is None:
+  args.randomness_log_interval = args.randomness_steps / args.randomness_log_num
 
 options = args
 if options.verbose:
