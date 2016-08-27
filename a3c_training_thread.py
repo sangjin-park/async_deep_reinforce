@@ -158,8 +158,9 @@ class A3CTrainingThread(object):
         reward = np.clip(reward, -self.options.reward_clip, self.options.reward_clip)
       rewards.append( reward )
 
-      # add basic income
-      reward += self.options.basic_income
+      # add basic income after some no reward steps
+      if self.no_reward_steps > self.options.no_reward_steps:
+        reward += self.options.basic_income
 
       # collect episode log
       if self.options.train_episode_steps > 0:
