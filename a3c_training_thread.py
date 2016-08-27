@@ -67,6 +67,7 @@ class A3CTrainingThread(object):
 
     if self.options.train_episode_steps > 0:
       self.max_reward = 0.0
+      self.max_episode_reward = self.max_reward
       self.episode_states = []
       self.episode_actions = []
       self.episode_rewards = []
@@ -206,8 +207,22 @@ class A3CTrainingThread(object):
                            self.episode_reward, global_t)
           
         if self.options.train_episode_steps > 0:
+          if self.episode_reward > self.max_episode_reward:
+            if self.options.record_new_record_dir is not None:
+              dirname = "s{:09d}-th{}-r{:03.0f}".format(global_t,  self.thread_index, self.episode_reward)
+              dirname = os.path.join(self.options.record_new_record_dir, dirname)
+              os.makedirs(dirname)
+              for index, state in enumerate(self.episode_states):
+                filename = "{:06d}.png".format(index)
+                filename = os.path.join(dirname, filename)
+                screen = np.array(state)[:,:,3]
+                screen_image = screen.reshape((84, 84)) * 255.
+                cv2.imwrite(filename, screen_image)
+              print("@@@ New Record screens saved to {}".format(dirname))
+
           if self.options.reset_max_reward:
             self.max_reward = 0.0
+          self.max_episode_reward = self.max_reward
           self.episode_states = []
           self.episode_actions = []
           self.episode_rewards = []
@@ -235,17 +250,6 @@ class A3CTrainingThread(object):
       if self.options.train_episode_steps > 0:
         if self.episode_reward > self.max_reward:
           print("@@@ New Record! : s={:9d},th={},lives={}".format(global_t,  self.thread_index, self.game_state.lives))
-          if self.options.record_new_record_dir is not None:
-            dirname = "s{:09d}-th{}-r{:03.0f}".format(global_t,  self.thread_index, self.episode_reward)
-            dirname = os.path.join(self.options.record_new_record_dir, dirname)
-            os.makedirs(dirname)
-            for index, state in enumerate(self.episode_states):
-              filename = "{:06d}.png".format(index)
-              filename = os.path.join(dirname, filename)
-              screen = np.array(state)[:,:,3]
-              screen_image = screen.reshape((84, 84)) * 255.
-              cv2.imwrite(filename, screen_image)
-            print("@@@ New Record screens saved to {}".format(dirname))
           states = self.episode_states[-self.options.train_episode_steps:]
           actions = self.episode_actions[-self.options.train_episode_steps:]
           rewards = self.episode_rewards[-self.options.train_episode_steps:]
