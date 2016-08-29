@@ -1,6 +1,5 @@
 import numpy as np
 import argparse
-import matplotlib.pyplot as plt
 import time
 import re
 import sys
@@ -76,6 +75,12 @@ def draw_graph(ax, data):
 args = parser.parse_args()
 if args.title is None:
   args.title = args.filename
+
+# trick for headless environment 
+if args.save:
+  import matplotlib as mpl
+  mpl.use('Agg')
+import matplotlib.pyplot as plt
 
 f = open(args.filename, "r")
 prog = re.compile('t=\s*(\d+),s=\s*(\d+).*r=\s*(\d+)@' + args.endmark)
