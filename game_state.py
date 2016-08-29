@@ -23,6 +23,7 @@ class GameState(object):
     self.record_gs_screen_dir = self.options.record_gs_screen_dir
     self.episode_record_dir = None
     self.episode = 1
+    self.rooms = np.zeros((24), dtype=np.int)
 
     if display:
       self._setup_display()
@@ -77,6 +78,15 @@ class GameState(object):
       print("th={},psc_n={}:psc_reward = {:.8f}".format(self.thread_index, self.psc_n, psc_reward))
 
     return psc_reward   
+
+  # for montezuma's revenge
+  def update_montezuma_rooms(self):
+    ram = self.ale.getRAM()
+    # room_no = ram[0x83]
+    room_no = ram[3]
+    self.rooms[room_no] += 1
+    if self.rooms[room_no] == 1:
+      print("@@@ NEW ROOM({}) VISITED: visit counts={}".format(room_no, self.rooms))
 
   def set_record_screen_dir(self, record_screen_dir):
     print("record_screen_dir", record_screen_dir)
@@ -138,6 +148,10 @@ class GameState(object):
       psc_image = np.reshape(psc_image, (self.psc_k))
       psc_image = np.uint8(psc_image * (self.psc_maxval / 255.0))
       psc_reward = self.psc_add_image(psc_image)
+
+    # update covered rooms
+    if self.options.rom == "montezuma_revenge.bin":
+      self.update_montezuma_rooms()
 
     if reshape:
       x_t = np.reshape(x_t, (84, 84, 1))
