@@ -55,6 +55,9 @@ def draw_graph(ax, data):
 
   x = data[:, args.x_column]
   y = data[:, args.y_column]
+  y_max = np.max(y)
+  ax.set_ylim(ymax = y_max * 1.05)
+
   x = x / args.scale
   ax.plot(x, y, ',')
 
