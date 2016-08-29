@@ -98,15 +98,18 @@ def save_data():
   if not os.path.exists(options.checkpoint_dir):
     os.mkdir(options.checkpoint_dir)  
 
+  # need copy of global_t because it might be changed in other thread
+  global_t_copy = global_t
+
   # write wall time
   wall_t = time.time() - start_time
-  wall_t_fname = options.checkpoint_dir + '/' + 'wall_t.' + str(global_t)
+  wall_t_fname = options.checkpoint_dir + '/' + 'wall_t.' + str(global_t_copy)
   with open(wall_t_fname, 'w') as f:
     f.write(str(wall_t))
 
-  saver.save(sess, options.checkpoint_dir + '/' + 'checkpoint', global_step = global_t)
+  saver.save(sess, options.checkpoint_dir + '/' + 'checkpoint', global_step = global_t_copy)
 
-  print('@@@ Data saved at global_t={}'.format(global_t))
+  print('@@@ Data saved at global_t={}'.format(global_t_copy))
 
 
 def train_function(parallel_index):
