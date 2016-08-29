@@ -154,14 +154,18 @@ class A3CTrainingThread(object):
 
       self.episode_reward += reward
 
-      # clip reward
-      if self.options.reward_clip > 0.0:
-        reward = np.clip(reward, -self.options.reward_clip, self.options.reward_clip)
-      rewards.append( reward )
+      # pseudo-count reward
+      if self.options.psc_use:
+        reward += self.game_state.psc_reward
 
       # add basic income after some no reward steps
       if self.no_reward_steps > self.options.no_reward_steps:
         reward += self.options.basic_income
+
+      # clip reward
+      if self.options.reward_clip > 0.0:
+        reward = np.clip(reward, -self.options.reward_clip, self.options.reward_clip)
+      rewards.append( reward )
 
       # collect episode log
       if self.options.train_episode_steps > 0:
@@ -247,7 +251,7 @@ class A3CTrainingThread(object):
     if self.options.terminate_on_lives_lost and (self.thread_index == 0) and (not self.options.train_in_eval):
       return 0
     else:
-      if self.options.train_episode_steps > 0:
+      if self.options.train_episode_steps > self.options.local_t_max:
         if self.episode_reward > self.max_reward:
           print("@@@ New Record! : s={:9d},th={},lives={}".format(global_t,  self.thread_index, self.game_state.lives))
           states = self.episode_states[-self.options.train_episode_steps:]

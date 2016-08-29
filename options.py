@@ -37,6 +37,12 @@ LIVES_LOST_WEIGHT = 1.0 # Weight of lives lost envet
 
 BASIC_INCOME_TIME  = 10 ** 20 # Basic income time for reward 1.0 in seconds (huge number means no basic income)
 
+PSC_USE = False # use pseudo-count
+PSC_BETA = 0.01 # Beta in pseudo-count
+PSC_FRSIZE = 42 # frame size in pseudo-count
+PSC_MAXVAL = 127 # max value of pixels in pseudo-count 
+REPEAT_ACTION_PROBABILITY = 0.0 # stochasticity option for ALE
+
 NO_REWARD_TIME  = 15 # Permitted No reward time in seconds
 
 RANDOMNESS_TIME = 300 # Time to max randomness(1.0)
@@ -45,7 +51,7 @@ RANDOMNESS_LOG_NUM = 30 # The number of randmness log
 COLOR_AVERAGING_IN_ALE = True # Color averagin in ALE
 COLOR_MAXIMIZING_IN_GS = False # Color maximizing in GS
 
-TRAIN_EPISODE_STEPS = 0 # Number of Train episode if the episode reward is new record
+TRAIN_EPISODE_STEPS = 0 # train steps for new record (no train if "< LOCAL_T_MAX". record only)
 REWARD_CLIP = 1.0 # Clip reward by -REWARD_CLIP - REWARD_CLIP. (0.0 means no clip)
 RESET_MAX_REWARD = False # Reset max reward in new episode
 
@@ -116,6 +122,13 @@ parser.add_argument('--lives-lost-reward', type=float, default=LIVES_LOST_REWARD
 parser.add_argument('--lives-lost-weight', type=float, default=LIVES_LOST_WEIGHT)
 parser.add_argument('--basic-income-time', type=int, default=BASIC_INCOME_TIME)
 parser.add_argument('--basic-income', type=float, default=None)
+
+parser.add_argument('--psc-use', type=str, default=str(PSC_USE))
+parser.add_argument('--psc-beta', type=float, default=PSC_BETA)
+parser.add_argument('--psc-frsize', type=int, default=PSC_FRSIZE)
+parser.add_argument('--psc-maxval', type=int, default=PSC_MAXVAL)
+parser.add_argument('--repeat-action-probability', type=float, default=REPEAT_ACTION_PROBABILITY)
+
 parser.add_argument('--no-reward-time', type=int, default=NO_REWARD_TIME)
 parser.add_argument('--no-reward-steps', type=int, default=None)
 parser.add_argument('--randomness-time', type=float, default=RANDOMNESS_TIME)
@@ -149,6 +162,7 @@ convert_boolean_arg(args, "use_gpu")
 convert_boolean_arg(args, "use_lstm")
 convert_boolean_arg(args, "terminate_on_lives_lost")
 convert_boolean_arg(args, "train_in_eval")
+convert_boolean_arg(args, "psc_use")
 convert_boolean_arg(args, "color_averaging_in_ale")
 convert_boolean_arg(args, "color_maximizing_in_gs")
 convert_boolean_arg(args, "reset_max_reward")

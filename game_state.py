@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import cv2
 import os
+from math import sqrt
 from ale_python_interface import ALEInterface
 
 
@@ -10,7 +11,7 @@ class GameState(object):
   def __init__(self, rand_seed, options, display=False, no_op_max=30, thread_index=-1):
     self.ale = ALEInterface()
     self.ale.setInt(b'random_seed', rand_seed)
-    self.ale.setFloat(b'repeat_action_probability', 0.0)
+    self.ale.setFloat(b'repeat_action_probability', options.repeat_action_probability)
     self.ale.setInt(b'frame_skip', options.frames_skip_in_ale)
     self.ale.setBool(b'color_averaging', options.color_averaging_in_ale)
     self._no_op_max = no_op_max
@@ -43,7 +44,39 @@ class GameState(object):
       self._screen_RGB = np.empty((210 * 160 * 3), dtype=np.uint8)
       self._prev_screen_RGB = np.empty((210 *  160 * 3), dtype=np.uint8)
 
+    # for pseudo-count
+    self.psc_use = options.psc_use
+    if options.psc_use:
+      self.psc_frsize = options.psc_frsize
+      self.psc_k = options.psc_frsize ** 2
+      self.psc_beta = options.psc_beta
+      self.psc_maxval = options.psc_maxval
+      self.psc_vcount = np.zeros((self.psc_k, self.psc_maxval + 1), dtype=np.float32)
+      self.psc_n = 0
+
     self.reset()
+ 
+  # for pseudo-count
+  def psc_add_image(self, psc_image):
+    k = self.psc_k
+    n = self.psc_n
+    if n > 0:
+      nr = (n + 1.0)/n
+      vcount = self.psc_vcount[range(k), psc_image]
+      self.psc_vcount[range(k), psc_image] += 1.0
+      r_over_rp = np.prod(nr * vcount / (1.0 + vcount))
+      psc_count = r_over_rp / (1.0 - r_over_rp)
+      psc_reward = self.psc_beta / sqrt(psc_count + 0.01)
+    else:
+      self.psc_vcount[range(k), psc_image] += 1.0
+      psc_reward = 0.0
+    
+    self.psc_n += 1
+
+    if self.psc_n % self.options.log_interval == 0:
+      print("th={},psc_n={}:psc_reward = {:.8f}".format(self.thread_index, self.psc_n, psc_reward))
+
+    return psc_reward   
 
   def set_record_screen_dir(self, record_screen_dir):
     print("record_screen_dir", record_screen_dir)
@@ -97,11 +130,20 @@ class GameState(object):
     resized_screen = cv2.resize(reshaped_screen, (84, 110))
     
     x_t = resized_screen[18:102,:]
+    
+    # pseudo-count
+    psc_reward = 0.0
+    if self.psc_use:
+      psc_image = cv2.resize(x_t, (self.psc_frsize, self.psc_frsize))
+      psc_image = np.reshape(psc_image, (self.psc_k))
+      psc_image = np.uint8(psc_image * (self.psc_maxval / 255.0))
+      psc_reward = self.psc_add_image(psc_image)
+
     if reshape:
       x_t = np.reshape(x_t, (84, 84, 1))
     x_t = x_t.astype(np.float32)
     x_t *= (1.0/255.0)
-    return reward, terminal, x_t
+    return reward, terminal, x_t, psc_reward
     
     
   def _setup_display(self):
@@ -124,7 +166,7 @@ class GameState(object):
 
     self._have_prev_screen_RGB = False
     self.terminal = False
-    _, _, x_t = self._process_frame(0, False)
+    _, _, x_t, _ = self._process_frame(0, False)
     
     self.reward = 0
     self.s_t = np.stack((x_t, x_t, x_t, x_t), axis = 2)
@@ -152,12 +194,13 @@ class GameState(object):
       if t:
         break
 
-    r, t, x_t1 = self._process_frame(real_action, True)
+    r, t, x_t1, psc_r = self._process_frame(real_action, True)
     reward = reward + r
 
     self.reward = reward
     self.terminal = t
     self.s_t1 = np.append(self.s_t[:,:,1:], x_t1, axis = 2)
+    self.psc_reward = psc_r
 
     self.lives = float(self.ale.lives())
 

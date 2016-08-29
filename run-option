@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 if [ $# -ne 1 ]; then
     echo "Usage: $0 rom-option-set-name"
@@ -8,7 +8,7 @@ fi
 case $1 in
   "latest")
     rom="montezuma_revenge.bin"
-    option="--action-size=18 --train-episode-steps=4500 --lives-lost-reward=0.0 --reward-clip=0.0 --reset-max-reward=True --record-new-record-dir=new-record";;
+    option="--action-size=18 --train-episode-steps=150 --lives-lost-reward=-0.1 --reset-max-reward=True --record-new-record-dir=new-record --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000";;
   "montezuma")
     rom="montezuma_revenge.bin"
     option="--action-size=18 --train-episode-steps=4500 --lives-lost-reward=0.0 --reward-clip=0.0 --reset-max-reward=True --record-new-record-dir=new-record";;
@@ -24,5 +24,6 @@ echo "rom=$rom"
 echo "option=$option"
 
 . activate tensorflow
-python a3c.py --rom $rom $option
+python a3c.py --rom $rom $option 
+
 
