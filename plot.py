@@ -94,14 +94,16 @@ while True:
   print(len(new_data), "data added.")
   if (len(new_data) > 0):
       data.extend(new_data)
-      ax.clear()
+      # ax.clear()
       draw_graph(ax, data)
   if args.save:
     savefilename = args.title + ".png"
     plt.savefig(savefilename)
     print("Graph saved to ", savefilename)
     sys.exit(0)
+  elif args.interval == 0:
+    plt.show()
+    sys.exit(0)
   else:
-    interval = args.interval if args.interval > 0 else 1000000
     plt.pause(args.interval)
 
