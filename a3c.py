@@ -8,6 +8,7 @@ import random
 import math
 import os
 import time
+import pickle
 
 from game_ac_network import GameACFFNetwork, GameACLSTMNetwork
 from a3c_training_thread import A3CTrainingThread
@@ -75,6 +76,8 @@ summary_writer = tf.train.SummaryWriter(options.log_file, sess.graph_def)
 # init or load checkpoint with saver
 saver = tf.train.Saver(max_to_keep = options.max_to_keep)
 checkpoint = tf.train.get_checkpoint_state(options.checkpoint_dir)
+# for pseudo-count
+psc_info = {"psc_n":0, "psc_vcount":None}
 if checkpoint and checkpoint.model_checkpoint_path:
   saver.restore(sess, checkpoint.model_checkpoint_path)
   print("checkpoint loaded:", checkpoint.model_checkpoint_path)
@@ -86,6 +89,16 @@ if checkpoint and checkpoint.model_checkpoint_path:
   wall_t_fname = options.checkpoint_dir + '/' + 'wall_t.' + str(global_t)
   with open(wall_t_fname, 'r') as f:
     wall_t = float(f.read())
+  # for pseudo-count
+  if options.psc_use:
+    psc_fname = options.checkpoint_dir + '/' + 'psc.' + str(global_t)
+    if os.path.exists(psc_fname):
+      with open(psc_fname, "rb") as f:
+        psc_info = pickle.load(f)
+      print("psc_info loaded:", psc_fname)
+    else:
+      print("psc_info does not exist and not loaded:", psc_fname)
+
   next_save_steps = (global_t + options.save_time_interval)//options.save_time_interval * options.save_time_interval
 else:
   print("Could not find old checkpoint")
@@ -94,7 +107,7 @@ else:
   next_save_steps = options.save_time_interval
 
 
-def save_data():
+def save_data(training_thread):
   if not os.path.exists(options.checkpoint_dir):
     os.mkdir(options.checkpoint_dir)  
 
@@ -106,6 +119,15 @@ def save_data():
   wall_t_fname = options.checkpoint_dir + '/' + 'wall_t.' + str(global_t_copy)
   with open(wall_t_fname, 'w') as f:
     f.write(str(wall_t))
+
+  # write psc_info
+  if options.psc_use:
+    game_state = training_thread.game_state
+    psc_n = game_state.psc_n
+    psc_vcount = game_state.psc_vcount
+    psc_fname = options.checkpoint_dir + '/' + 'psc.' + str(global_t_copy)
+    with open(psc_fname, "wb") as f:
+      pickle.dump({"psc_n":psc_n, "psc_vcount":psc_vcount}, f)
 
   saver.save(sess, options.checkpoint_dir + '/' + 'checkpoint', global_step = global_t_copy)
 
@@ -121,9 +143,13 @@ def train_function(parallel_index):
   start_time = time.time() - wall_t
   training_thread.set_start_time(start_time)
 
+  # for pseudo-count
+  if options.psc_use:
+    training_thread.game_state.psc_set_psc_info(psc_info)
+
   while True:
     if (parallel_index == 0) and (global_t > next_save_steps):
-      save_data()
+      save_data(training_thread)
       next_save_steps += options.save_time_interval
       
     if stop_requested:
@@ -158,4 +184,4 @@ print('Press Ctrl+C to stop')
 for t in train_threads:
   t.join()
 
-save_data()
+save_data(training_threads[0])

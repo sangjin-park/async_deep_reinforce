@@ -9,7 +9,7 @@ program="a3c.py"
 case $1 in
   "montezuma")
     rom="montezuma_revenge.bin"
-    option="--action-size=18 --train-episode-steps=150 --lives-lost-reward=-0.1 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000 --end-mega-step=100 --log-interval=800"
+    option="--train-episode-steps=30 --lives-lost-reward=-0.02 --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000 --end-mega-step=80 --save-mega-interval=3 --log-interval=800 "
     ;;
   "breakout")
     rom="breakout.bin"

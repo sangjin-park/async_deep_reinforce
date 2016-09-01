@@ -60,6 +60,12 @@ class GameState(object):
       self.psc_n = 0
 
     self.reset()
+
+  # for pseudo-count
+  def psc_set_psc_info(self, psc_info):
+    if psc_info["psc_n"] != 0:
+      self.psc_vcount = np.array(psc_info["psc_vcount"], dtype=np.float32)
+      self.psc_n = psc_info["psc_n"]
  
   # for pseudo-count
   def psc_add_image(self, psc_image):
