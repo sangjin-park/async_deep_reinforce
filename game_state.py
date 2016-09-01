@@ -6,6 +6,10 @@ import os
 from math import sqrt
 from ale_python_interface import ALEInterface
 
+def peekActionSize(rom):
+  ale = ALEInterface()
+  ale.loadROM(rom.encode('ascii'))
+  return len(ale.getMinimalActionSet())
 
 class GameState(object):
   def __init__(self, rand_seed, options, display=False, no_op_max=30, thread_index=-1):

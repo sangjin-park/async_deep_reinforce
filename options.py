@@ -12,7 +12,6 @@ INITIAL_ALPHA_HIGH = 1e-2   # log_uniform high limit for learning rate
 
 PARALLEL_SIZE = 8 # parallel thread size
 ROM = "breakout.bin"     # action size = 3
-ACTION_SIZE = 4 # action size
 
 INITIAL_ALPHA_LOG_RATE = 0.4226 # log_uniform interpolate rate for learning rate (around 7 * 10^-4)
 GAMMA = 0.99 # discount factor for rewards
@@ -96,7 +95,7 @@ parser.add_argument('--initial-alpha-high', type=float, default=INITIAL_ALPHA_HI
 
 parser.add_argument('--parallel-size', type=int, default=PARALLEL_SIZE)
 parser.add_argument('--rom', type=str, default=ROM)
-parser.add_argument('--action-size', type=int, default=ACTION_SIZE)
+parser.add_argument('--action-size', type=int, default=None)
 
 parser.add_argument('--initial-alpha-log-rate', type=float, default=INITIAL_ALPHA_LOG_RATE)
 parser.add_argument('--gamma', type=float, default=GAMMA)
@@ -207,6 +206,10 @@ if args.randomness is None:
   args.randomness = 1.0 / args.randomness_steps
 if args.randomness_log_interval is None:
   args.randomness_log_interval = args.randomness_steps / args.randomness_log_num
+
+if args.action_size is None:
+  from game_state import peekActionSize
+  args.action_size = peekActionSize(args.rom)
 
 options = args
 if options.verbose:
