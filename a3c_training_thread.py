@@ -253,7 +253,7 @@ class A3CTrainingThread(object):
     else:
       if self.options.train_episode_steps > self.options.local_t_max:
         if self.episode_reward > self.max_reward:
-          print("@@@ New Record! : s={:9d},th={},lives={}".format(global_t,  self.thread_index, self.game_state.lives))
+          print("@@@ New Record! : SCORE={:9d},s={:9d},th={},lives={}".format(self.episode_reward,  global_t, self.thread_index, self.game_state.lives))
           states = self.episode_states[-self.options.train_episode_steps:]
           actions = self.episode_actions[-self.options.train_episode_steps:]
           rewards = self.episode_rewards[-self.options.train_episode_steps:]

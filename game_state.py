@@ -75,7 +75,7 @@ class GameState(object):
     self.psc_n += 1
 
     if self.psc_n % self.options.log_interval == 0:
-      print("th={},psc_n={}:psc_reward = {:.8f}".format(self.thread_index, self.psc_n, psc_reward))
+      print("[PSC]th={},psc_n={}:psc_reward = {:.8f}".format(self.thread_index, self.psc_n, psc_reward))
 
     return psc_reward   
 
@@ -86,7 +86,7 @@ class GameState(object):
     room_no = ram[3]
     self.rooms[room_no] += 1
     if self.rooms[room_no] == 1:
-      print("@@@ NEW ROOM({}) VISITED: visit counts={}".format(room_no, self.rooms))
+      print("[PSC]@@@ NEW ROOM({}) VISITED: visit counts={}".format(room_no, self.rooms))
 
   def set_record_screen_dir(self, record_screen_dir):
     print("record_screen_dir", record_screen_dir)
