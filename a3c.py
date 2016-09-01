@@ -128,7 +128,7 @@ def train_function(parallel_index):
       
     if stop_requested:
       break
-    if global_t > options.save_time_step:
+    if global_t > options.end_time_step:
       break
 
     diff_global_t = training_thread.process(sess, global_t, summary_writer,

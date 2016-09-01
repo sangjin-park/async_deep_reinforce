@@ -18,7 +18,7 @@ INITIAL_ALPHA_LOG_RATE = 0.4226 # log_uniform interpolate rate for learning rate
 GAMMA = 0.99 # discount factor for rewards
 ENTROPY_BETA = 0.01 # entropy regurarlization constant
 MAX_MEGA_STEP = 100 # max  learning step (in Mega step)
-SAVE_MEGA_STEP = 30 # save learning step (in Mega step)
+END_MEGA_STEP = 50 # last learning step (in Mega step): end before max learning step
 SAVE_MEGA_INTERVAL = 3 # save interval (in Mega step)
 MAX_TO_KEEP = None # maximum number of recent checkpoint files to keep (None means no-limit)
 
@@ -103,8 +103,8 @@ parser.add_argument('--gamma', type=float, default=GAMMA)
 parser.add_argument('--entropy-beta', type=float, default=ENTROPY_BETA)
 parser.add_argument('--max-mega-step', type=int, default=MAX_MEGA_STEP)
 parser.add_argument('--max-time-step', type=int, default=None)
-parser.add_argument('--save-mega-step', type=int, default=SAVE_MEGA_STEP)
-parser.add_argument('--save-time-step', type=int, default=None)
+parser.add_argument('--end-mega-step', type=int, default=END_MEGA_STEP)
+parser.add_argument('--end-time-step', type=int, default=None)
 parser.add_argument('--save-mega-interval', type=int, default=SAVE_MEGA_INTERVAL)
 parser.add_argument('--save-time-interval', type=int, default=None)
 parser.add_argument('--max-to-keep', type=int, default=MAX_TO_KEEP)
@@ -185,8 +185,8 @@ if args.color_maximizing_in_gs:
 
 if args.max_time_step is None:
   args.max_time_step = args.max_mega_step * 10**6
-if args.save_time_step is None:
-  args.save_time_step = args.save_mega_step * 10**6
+if args.end_time_step is None:
+  args.end_time_step = args.end_mega_step * 10**6
 if args.save_time_interval is None:
   args.save_time_interval = args.save_mega_interval * 10**6
 

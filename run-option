@@ -5,25 +5,26 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
+program="a3c.py"
 case $1 in
-  "latest")
-    rom="montezuma_revenge.bin"
-    option="--action-size=18 --train-episode-steps=150 --lives-lost-reward=-0.1 --reset-max-reward=True --record-new-record-dir=new-record --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000";;
   "montezuma")
     rom="montezuma_revenge.bin"
-    option="--action-size=18 --train-episode-steps=4500 --lives-lost-reward=0.0 --reward-clip=0.0 --reset-max-reward=True --record-new-record-dir=new-record";;
+    option="--action-size=18 --train-episode-steps=150 --lives-lost-reward=-0.1 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000 --end-mega-step=100 --log-interval=800"
+    ;;
   "breakout")
     rom="breakout.bin"
-    option="";;
+    option=""
+    ;;
   *)
-    echo "Invalid option-set-name: $optionsn"
-    exit 1;;
+    echo "Invalid option-set-name: $1"
+    exit 1
+    ;;
 esac
 
 echo "rom=$rom"
 echo "option=$option"
 
 . activate tensorflow
-python a3c.py --rom $rom $option 
+python $program --rom $rom $option 
 
 
