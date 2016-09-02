@@ -1,80 +1,59 @@
 # async_deep_reinforce
 
-Asynchronous deep reinforcement learning
+Asynchronous deep reinforcement learning + Pseudo-count based reward + On-highscore-learning
 
 ## About
 
-An attempt to repdroduce Google Deep Mind's paper "Asynchronous Methods for Deep Reinforcement Learning."
+This code is fork from [miyosuda's code](https://github.com/miyosuda/async_deep_reinforce). I added many functions for Deep Learning experiments. Of which, pseudo-count based reward based on following paper and on-highscore-learning (my original) enable over 500 point average score in Montezuma's Revenge, which is higher than DeepMind's paper as for A3C.
+ 
+https://arxiv.org/abs/1606.01868
 
-http://arxiv.org/abs/1602.01783
+"on-highscore-learning" is my original idea, which learn from state-action-rewards-history when getting highscore. But in evaluation of Montezuma's Revenge, I set option to reset highscore in every episode, so learning occured in every score. 
 
-Asynchronous Advantage Actor-Critic (A3C) method for playing "Atari Pong" is implemented with TensorFlow.
-Both A3C-FF and A3C-LSTM are implemented.
+## Learning curve of Montezuma's Revenge
 
-Learning result movment after 26 hours (A3C-FF) is like this.
+The following graph is the average score of Montezuma's Revenge.
 
-[![Learning result after 26 hour](http://narr.jp/private/miyoshi/deep_learning/a3c_preview_image.jpg)](https://youtu.be/ZU71YdAedZs)
+![learning result after 39M steps](https://github.com/Itsukara/async_deep_reinforce/blob/master/learning-curves/montezuma-psc-39M.png)
 
-Any advice or suggestion is strongly welcomed in issues thread.
+0 - 30M steps: Pseudo-count based reward is ON, on-highscore-learning is ON. (--psc-use=True --train-episode-steps=150)
 
-https://github.com/miyosuda/async_deep_reinforce/issues/1
+30 - 30M steps: Above + Reset highscore in every episode. (--reset-max-reward=True)
 
-## How to build
+## How to prepare environment
 
-First we need to build multi thread ready version of Arcade Learning Enviroment.
-I made some modification to it to run it on multi thread enviroment.
+This code needs Anaconda, tensorflow, opencv3 and Arcade Learning Environment (ALE). You can use scrips in "gcp-install" directory. Run following.
+ 
+    $ mkdir Download
+    $ cp gcp-install-a3c-env.tgz Download/
+    $ cd Download/
+    $ tar zxvf gcp-install-a3c-env.tgz
+    $ bash -x install-Anaconda.sh
+    $ . ~/.bashrc
+    $ bash -x install-tensorflow.sh
+    $ bash -x install-opencv3.sh
+    $ bash -x install-ALE.sh
+    $ git clone https://github.com/Itsukara/async_deep_reinforce.git
+    $ cd async_deep_reinforce
+    $ mv checkpoints checkpoints.old
 
-    $ git clone https://github.com/miyosuda/Arcade-Learning-Environment.git
-    $ cd Arcade-Learning-Environment
-    $ cmake -DUSE_SDL=ON -DUSE_RLGLUE=OFF -DBUILD_EXAMPLES=OFF .
-    $ make -j 4
-	
-    $ pip install .
-
-I recommend to install it on VirtualEnv environment.
+When program requests input, just hit Enter or input "y" or "yes" and hit Enter. But as for Anaconda, you have to input "q" when License and "--More--" is displayed.
 
 ## How to run
 
 To train,
 
-    $python a3c.py
+    $ run-option montezuma-4
 
 To display the result with game play,
 
-    $python a3c_disp.py
+    $ python a3c_display.py --rom=montezuma_revenge.bin
 
-## Using GPU
-To enable gpu, change "USE_GPU" flag in "constants.py".
+## Run options
 
-When running with 8 parallel game environemts, speeds of GPU (GTX980Ti) and CPU(Core i7 6700) were like this.
-
-|type | A3C-FF            |A3C-LSTM          |
-|-----|-------------------|------------------|
-| GPU | 821 steps per sec |416 steps per sec |
-| CPU | 472 steps per sec |243 steps per sec |
-
-
-## Result
-Score plots of local threads of pong in 24h were like these. (with GTX980Ti)
-
-### A3C-FF 
-(70.9 million global steps in 24 hours)
-
-![A3C-FF scores](https://github.com/miyosuda/async_deep_reinforce/blob/master/docs/graph_24h.png)
-
-### A3C-LSTM 
-(35.9 million global steps in 24 hours)
-
-![A3C-LSTM scores](https://github.com/miyosuda/async_deep_reinforce/blob/master/docs/graph_24h_lstm.png)
-
-Scores are not averaged using global network unlike the original paper.
-
-## References
-
-This project uses setting written in muupan's wiki [muuupan/async-rl] (https://github.com/muupan/async-rl/wiki)
-
+As for options, see options.py.
 
 ## Acknowledgements
 
-- [@aravindsrinivas](https://github.com/aravindsrinivas) for providing information for some of the hyper parameters.
+- [@miosuda](https://github.com/miyosuda/async_deep_reinforce) for providing very fast A3C program.
 
