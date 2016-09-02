@@ -45,7 +45,7 @@ while True:
   episode += 1
   episode_record_dir = None
   if options.record_screen_dir is not None:
-    episode_dir = "episode{:03d}".format(episode)
+    episode_dir = options.rom.split(".")[0] + "-e{:03d}".format(episode)
     episode_record_dir = os.path.join(options.record_screen_dir, episode_dir)
     os.makedirs(episode_record_dir)
     game_state.set_record_screen_dir(episode_record_dir)
@@ -68,6 +68,8 @@ while True:
     game_state.update()
 
     if terminal:
-      print("Game finised with score=", reward)
       game_state.reset()
+      print("Game finised with score=", reward)
       break
+  new_episode_record_dir = episode_record_dir + "-r{:04d}-s{:04d}".format(reward, steps)
+  os.rename(episode_record_dir, new_episode_record_dir)
