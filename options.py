@@ -47,8 +47,8 @@ NO_REWARD_TIME  = 15 # Permitted No reward time in seconds
 RANDOMNESS_TIME = 300 # Time to max randomness(1.0)
 RANDOMNESS_LOG_NUM = 30 # The number of randmness log
 
-COLOR_AVERAGING_IN_ALE = True # Color averagin in ALE
-COLOR_MAXIMIZING_IN_GS = False # Color maximizing in GS
+COLOR_AVERAGING_IN_ALE = False # Color averagin in ALE
+COLOR_MAXIMIZING_IN_GS = True # Color maximizing in GS
 
 TRAIN_EPISODE_STEPS = 0 # train steps for new record (no train if "< LOCAL_T_MAX". record only)
 REWARD_CLIP = 1.0 # Clip reward by -REWARD_CLIP - REWARD_CLIP. (0.0 means no clip)
