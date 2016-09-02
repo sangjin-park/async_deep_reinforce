@@ -75,7 +75,8 @@ class A3CTrainingThread(object):
       self.episode_liveses = []
 
     if (self.thread_index == 0) and (self.options.record_new_record_dir is not None):
-      os.makedirs(self.options.record_new_record_dir)
+      if not os.path.exists(self.options.record_new_record_dir):
+        os.makedirs(self.options.record_new_record_dir)
     
 
   def _anneal_learning_rate(self, global_time_step):
