@@ -6,7 +6,7 @@ Asynchronous deep reinforcement learning + Pseudo-count based reward + On-highsc
 
 This code is fork from [miyosuda's code](https://github.com/miyosuda/async_deep_reinforce). I added many functions for Deep Learning experiments. Of which, pseudo-count based reward based on following paper and on-highscore-learning (my original) enable over 500 point average score in Montezuma's Revenge, which is higher than DeepMind's paper as for A3C.
  
-https://arxiv.org/abs/1606.01868
+[https://arxiv.org/abs/1606.01868 (Unifying Count-Based Exploration and Intrinsic Motivation)](https://arxiv.org/abs/1606.01868)
 
 "on-highscore-learning" is my original idea, which learn from state-action-rewards-history when getting highscore. But in evaluation of Montezuma's Revenge, I set option to reset highscore in every episode, so learning occured in every score. 
 
