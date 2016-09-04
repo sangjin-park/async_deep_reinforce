@@ -20,6 +20,13 @@ The following graph is the average score of Montezuma's Revenge.
 
 30 - 30M steps: Above + Reset highscore in every episode. (--reset-max-reward=True)
 
+
+## Play movie
+
+The following is a play movie of Montezuma's Revenge after training 50M steps. Its score is 2600.
+
+[![](http://img.youtube.com/vi/tts3wOPnKQE/0.jpg)](https://www.youtube.com/watch?v=tts3wOPnKQE)
+
 ## How to prepare environment
 
 This code needs Anaconda, tensorflow, opencv3 and Arcade Learning Environment (ALE). You can use scrips in "gcp-install" directory. Run following.
