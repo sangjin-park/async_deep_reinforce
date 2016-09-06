@@ -84,7 +84,7 @@ class GameState(object):
     
     self.psc_n += 1
 
-    if self.psc_n % self.options.log_interval == 0:
+    if self.psc_n % self.options.score_log_interval == 0:
       print("[PSC]th={},psc_n={}:psc_reward = {:.8f}".format(self.thread_index, self.psc_n, psc_reward))
 
     return psc_reward   

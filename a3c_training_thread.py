@@ -6,6 +6,8 @@ import time
 import sys
 import cv2
 import os
+from collections import deque
+from sortedcontainers import SortedList
 
 from accum_trainer import AccumTrainer
 from game_state import GameState
@@ -13,6 +15,42 @@ from game_ac_network import GameACFFNetwork, GameACLSTMNetwork
 
 import options
 options = options.options
+
+class Episode_scores(object):
+  def __init__(self, options):
+    self.maxlen = options.score_averaging_length
+    self.threshold = options.score_highest_ratio
+    self.episode_scores = deque()
+    self.episode_scores.append(0) # to avoid 0-div in first averaging
+    self.episode_scores_sum = 0
+    self.sorted_scores = SortedList()
+    self.sorted_scores.add(0) # align to episode_scores
+    self.num_episode = 0
+    self.options = options
+
+  def add(self, n, global_t, thread_index):
+    self.episode_scores_sum += n
+    self.episode_scores.append(n)
+    self.sorted_scores.add(-n) # trick to use SortedList in reverse order
+    if len(self.episode_scores) > self.maxlen:
+      oldest = self.episode_scores.popleft()
+      self.sorted_scores.remove(-oldest)
+      self.episode_scores_sum -= oldest
+    self.num_episode += 1
+    if self.num_episode % self.options.average_score_log_interval == 0:
+      print("@@@ Average Episode score = {:.6f}, s={:9d},th={}".format(self.average(), global_t, thread_index))
+
+  def average(self):
+    return self.episode_scores_sum / len(self.episode_scores)
+
+  def is_highscore(self, n):
+    sorted_scores = self.sorted_scores
+    num_scores = len(sorted_scores)
+    sorted_scores.add(-n)
+    index = sorted_scores.index(-n)
+    highest_ratio = (index + 1) / num_scores
+    sorted_scores.remove(-n)
+    return highest_ratio <= self.threshold
 
 
 class A3CTrainingThread(object):
@@ -67,12 +105,13 @@ class A3CTrainingThread(object):
 
     if self.options.train_episode_steps > 0:
       self.max_reward = 0.0
-      self.max_episode_reward = self.max_reward
+      self.max_episode_reward = 0.0
       self.episode_states = []
       self.episode_actions = []
       self.episode_rewards = []
       self.episode_values = []
       self.episode_liveses = []
+      self.episode_scores = Episode_scores(options)
 
     if (self.thread_index == 0) and (self.options.record_new_record_dir is not None):
       if not os.path.exists(self.options.record_new_record_dir):
@@ -227,12 +266,13 @@ class A3CTrainingThread(object):
 
           if self.options.reset_max_reward:
             self.max_reward = 0.0
-          self.max_episode_reward = self.max_reward
+          self.max_episode_reward = self.episode_reward
           self.episode_states = []
           self.episode_actions = []
           self.episode_rewards = []
           self.episode_values = []
           self.episode_liveses = []
+          self.episode_scores.add(self.episode_reward, global_t, self.thread_index)
 
         self.episode_reward = 0
         self.steps = 0
@@ -252,15 +292,16 @@ class A3CTrainingThread(object):
     if self.options.terminate_on_lives_lost and (self.thread_index == 0) and (not self.options.train_in_eval):
       return 0
     else:
-      if self.options.train_episode_steps > self.options.local_t_max:
+      if self.options.train_episode_steps > 0:
         if self.episode_reward > self.max_reward:
-          print("@@@ New Record! : SCORE={:9d},s={:9d},th={},lives={}".format(self.episode_reward,  global_t, self.thread_index, self.game_state.lives))
-          states = self.episode_states[-self.options.train_episode_steps:]
-          actions = self.episode_actions[-self.options.train_episode_steps:]
-          rewards = self.episode_rewards[-self.options.train_episode_steps:]
-          values = self.episode_values[-self.options.train_episode_steps:]
-          liveses = self.episode_liveses[-self.options.train_episode_steps-1:]
           self.max_reward = self.episode_reward
+          if self.episode_scores.is_highscore(self.episode_reward):
+            print("@@@ On-Highscore-Learning : SCORE={:9d},s={:9d},th={},lives={}".format(self.episode_reward,  global_t, self.thread_index, self.game_state.lives))
+            states = self.episode_states[-self.options.train_episode_steps:]
+            actions = self.episode_actions[-self.options.train_episode_steps:]
+            rewards = self.episode_rewards[-self.options.train_episode_steps:]
+            values = self.episode_values[-self.options.train_episode_steps:]
+            liveses = self.episode_liveses[-self.options.train_episode_steps-1:]
 
       R = 0.0
       if not terminal_end:
@@ -283,9 +324,9 @@ class A3CTrainingThread(object):
         if self.game_state.initial_lives != 0.0 and not self.terminate_on_lives_lost:
           prev_lives = liveses.pop()
           if prev_lives > lives:
-#            if self.options.train_episode_steps > 0 and self.episode_states == []:
-#              break
-            R *= (1.0 - self.options.lives_lost_weight) + self.options.lives_lost_weight* (lives / prev_lives)
+            weight = self.options.lives_lost_weight
+            rratio = self.options.lives_lost_rratio
+            R *= rratio * ( (1.0 - weight) + weight * (lives / prev_lives) )
             ri = self.options.lives_lost_reward
             lives = prev_lives
 

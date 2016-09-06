@@ -5,28 +5,55 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
+program="a3c.py"
 case $1 in
-  "latest")
+  "montezuma-9")
     rom="montezuma_revenge.bin"
-    option="--action-size=18 --train-episode-steps=150 --lives-lost-reward=0.0 --reset-max-reward=True --record-new-record-dir=new-record --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000 --color-maximizing-in-gs=True --color-averaging-in-ale=False --use-gpu=False";;
-  "prev")
+    option="--train-episode-steps=30 --lives-lost-reward=-0.02 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000 --end-mega-step=80 --log-interval=800 --max-to-keep=5 --color-maximizing-in-gs=False --color-averaging-in-ale=True"
+    ;;
+  "montezuma-6")
     rom="montezuma_revenge.bin"
-    option="--action-size=18 --train-episode-steps=150 --lives-lost-reward=-0.1 --reset-max-reward=True --record-new-record-dir=new-record --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000";;
-  "montezuma")
+    option="--train-episode-steps=30 --lives-lost-reward=-0.1 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000 --end-mega-step=80 --log-interval=800 --max-to-keep=5"
+    ;;
+  "montezuma-5")
     rom="montezuma_revenge.bin"
-    option="--action-size=18 --train-episode-steps=4500 --lives-lost-reward=0.0 --reward-clip=0.0 --reset-max-reward=True --record-new-record-dir=new-record";;
+    option="--train-episode-steps=150 --lives-lost-reward=-0.1 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000 --end-mega-step=80 --log-interval=800 --max-to-keep=5"
+    ;;
+  "montezuma-4-lstm-avg")
+    rom="montezuma_revenge.bin"
+    option="--train-episode-steps=150 --lives-lost-reward=-0.02 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000 --end-mega-step=80 --log-interval=800 --max-to-keep=5 --use-lstm=True --color-maximizing-in-gs=False --color-averaging-in-ale=True"
+    ;;
+  "montezuma-4")
+    rom="montezuma_revenge.bin"
+    option="--train-episode-steps=150 --lives-lost-reward=-0.02 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000 --end-mega-step=80 --log-interval=800 --max-to-keep=5 --use-lstm=True"
+    ;;
+  "montezuma-3")
+    rom="montezuma_revenge.bin"
+    option="--train-episode-steps=30 --lives-lost-reward=-0.02 --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000 --end-mega-step=80 --save-mega-interval=3 --log-interval=800 --max-to-keep=5"
+    ;;
+  "montezuma-2")
+    rom="montezuma_revenge.bin"
+    option="--action-size=18 --train-episode-steps=150 --lives-lost-reward=-0.1 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000"
+    ;;
+  "montezuma-1")
+    rom="montezuma_revenge.bin"
+    option="--action-size=18 --train-episode-steps=150 --lives-lost-reward=-0.1 --reset-max-reward=True --record-new-record-dir=new-record --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000"
+    ;;
   "breakout")
     rom="breakout.bin"
-    option="";;
+    option=""
+    ;;
   *)
-    echo "Invalid option-set-name: $optionsn"
-    exit 1;;
+    echo "Invalid option-set-name: $1"
+    exit 1
+    ;;
 esac
 
+echo "runset=$1"
 echo "rom=$rom"
 echo "option=$option"
 
 #. activate tensorflow
-python a3c.py --rom $rom $option 
+python $program --rom $rom $option 
 
 

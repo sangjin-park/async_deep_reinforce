@@ -7,6 +7,10 @@ fi
 
 program="a3c.py"
 case $1 in
+  "montezuma-8")
+    rom="montezuma_revenge.bin"
+    option="--train-episode-steps=30 --lives-lost-reward=-0.03 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000 --end-mega-step=80 --log-interval=800 --max-to-keep=5 --color-maximizing-in-gs=False --color-averaging-in-ale=True"
+    ;;
   "montezuma-6")
     rom="montezuma_revenge.bin"
     option="--train-episode-steps=30 --lives-lost-reward=-0.1 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000 --end-mega-step=80 --log-interval=800 --max-to-keep=5"
@@ -41,6 +45,7 @@ case $1 in
     ;;
 esac
 
+echo "runset=$1"
 echo "rom=$rom"
 echo "option=$option"
 

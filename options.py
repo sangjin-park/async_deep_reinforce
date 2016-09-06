@@ -33,6 +33,7 @@ TRAIN_IN_EVAL = False # Train in evaluation thread(thread 0) in "TERMINATE_ON_LI
 NUM_EXPERIMENTS = 1 # number of experiments to determin action
 LIVES_LOST_REWARD =-1.0 # Reward for lives lost (-1.0 - 0.0)
 LIVES_LOST_WEIGHT = 1.0 # Weight of lives lost envet
+LIVES_LOST_RRATIO = 1.0 # Ratio of R after lives lost event 
 
 BASIC_INCOME_TIME  = 10 ** 20 # Basic income time for reward 1.0 in seconds (huge number means no basic income)
 
@@ -47,16 +48,19 @@ NO_REWARD_TIME  = 15 # Permitted No reward time in seconds
 RANDOMNESS_TIME = 300 # Time to max randomness(1.0)
 RANDOMNESS_LOG_NUM = 30 # The number of randmness log
 
-COLOR_AVERAGING_IN_ALE = False # Color averagin in ALE
-COLOR_MAXIMIZING_IN_GS = True # Color maximizing in GS
+COLOR_AVERAGING_IN_ALE = True # Color averagin in ALE
+COLOR_MAXIMIZING_IN_GS = False # Color maximizing in GS
 
 TRAIN_EPISODE_STEPS = 0 # train steps for new record (no train if "< LOCAL_T_MAX". record only)
 REWARD_CLIP = 1.0 # Clip reward by -REWARD_CLIP - REWARD_CLIP. (0.0 means no clip)
 RESET_MAX_REWARD = False # Reset max reward in new episode
+SCORE_AVERAGING_LENGTH = 100 # Episode score averaging length
+SCORE_HIGHEST_RATIO = 0.5 # Threshold of highest ratio to be highscore 
 
 LOG_INTERVAL = 100 # Log output interval (steps)
 SCORE_LOG_INTERVAL = 900 # Score log output interval (steps)
 PERFORMANCE_LOG_INTERVAL = 1500 # Performance log output interval (steps)
+AVERAGE_SCORE_LOG_INTERVAL = 10 # Average score log output interval (eipsode)
 
 RECORD_SCREEN_DIR = None # Game screen (output of ALE) record directory 
 RECORD_GS_SCREEN_DIR = None # Game screen (input to A3C) record directory
@@ -119,6 +123,7 @@ parser.add_argument('--train-in-eval', type=str, default=str(TRAIN_IN_EVAL))
 parser.add_argument('--num-experiments', type=int, default=NUM_EXPERIMENTS)
 parser.add_argument('--lives-lost-reward', type=float, default=LIVES_LOST_REWARD)
 parser.add_argument('--lives-lost-weight', type=float, default=LIVES_LOST_WEIGHT)
+parser.add_argument('--lives-lost-rratio', type=float, default=LIVES_LOST_RRATIO)
 parser.add_argument('--basic-income-time', type=int, default=BASIC_INCOME_TIME)
 parser.add_argument('--basic-income', type=float, default=None)
 
@@ -142,10 +147,13 @@ parser.add_argument('--frames-skip-in-gs', type=int, default=None)
 parser.add_argument('--train-episode-steps', type=int, default=TRAIN_EPISODE_STEPS)
 parser.add_argument('--reward-clip', type=float, default=REWARD_CLIP)
 parser.add_argument('--reset-max-reward', type=str, default=str(RESET_MAX_REWARD))
+parser.add_argument('--score-averaging-length', type=int, default=SCORE_AVERAGING_LENGTH)
+parser.add_argument('--score-highest-ratio', type=float, default=SCORE_HIGHEST_RATIO)
 
 parser.add_argument('--log-interval', type=int, default=LOG_INTERVAL)
 parser.add_argument('--score-log-interval', type=int, default=SCORE_LOG_INTERVAL)
 parser.add_argument('--performance-log-interval', type=int, default=PERFORMANCE_LOG_INTERVAL)
+parser.add_argument('--average-score-log-interval', type=int, default=AVERAGE_SCORE_LOG_INTERVAL)
 
 parser.add_argument('--record-screen-dir', type=str, default=RECORD_SCREEN_DIR)
 parser.add_argument('--record-gs-screen-dir', type=str, default=RECORD_GS_SCREEN_DIR)

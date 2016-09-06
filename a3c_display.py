@@ -71,5 +71,6 @@ while True:
       game_state.reset()
       print("Game finised with score=", reward)
       break
-  new_episode_record_dir = episode_record_dir + "-r{:04d}-s{:04d}".format(reward, steps)
-  os.rename(episode_record_dir, new_episode_record_dir)
+  if options.record_screen_dir is not None:
+    new_episode_record_dir = episode_record_dir + "-r{:04d}-s{:04d}".format(reward, steps)
+    os.rename(episode_record_dir, new_episode_record_dir)
