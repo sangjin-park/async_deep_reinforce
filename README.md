@@ -65,6 +65,10 @@ As for options, see options.py.
 
 The source code is still under development and may chage frequently. Currently, I'm searching best parameters to speed-up learning and get higher score. In this search, I'm adding new functions to change behavior of the program. So, it might be degraded sometimes. Sorry for that in advance.
 
+## Sharing experiment result
+
+I'd appreciate if you could write your experiment result to thread ["Experiment Results"](https://github.com/Itsukara/async_deep_reinforce/issues/3) in Issues. 
+
 ## Blog
 
 I'm writing blog on this program. See following (in Japanese):
