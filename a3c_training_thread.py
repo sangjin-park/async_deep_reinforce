@@ -296,7 +296,7 @@ class A3CTrainingThread(object):
         if self.episode_reward > self.max_reward:
           self.max_reward = self.episode_reward
           if self.episode_scores.is_highscore(self.episode_reward):
-            print("@@@ On-Highscore-Learning : SCORE={:9d},s={:9d},th={},lives={}".format(self.episode_reward,  global_t, self.thread_index, self.game_state.lives))
+            print("[OHL]SCORE={:9d},s={:9d},th={},lives={},local_t={}".format(self.episode_reward,  global_t, self.thread_index, self.game_state.lives, self.local_t))
             states = self.episode_states[-self.options.train_episode_steps:]
             actions = self.episode_actions[-self.options.train_episode_steps:]
             rewards = self.episode_rewards[-self.options.train_episode_steps:]
