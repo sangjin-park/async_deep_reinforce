@@ -56,6 +56,8 @@ REWARD_CLIP = 1.0 # Clip reward by -REWARD_CLIP - REWARD_CLIP. (0.0 means no cli
 RESET_MAX_REWARD = False # Reset max reward in new episode
 SCORE_AVERAGING_LENGTH = 100 # Episode score averaging length
 SCORE_HIGHEST_RATIO = 0.5 # Threshold of highest ratio to be highscore 
+TES_EXTEND = False # Extend train-episode-steps based of remaining lives 
+TES_EXTEND_RATIO = 5.0 # Multiply this value to train-episode-steps when full lives 
 
 LOG_INTERVAL = 100 # Log output interval (steps)
 SCORE_LOG_INTERVAL = 900 # Score log output interval (steps)
@@ -149,6 +151,8 @@ parser.add_argument('--reward-clip', type=float, default=REWARD_CLIP)
 parser.add_argument('--reset-max-reward', type=str, default=str(RESET_MAX_REWARD))
 parser.add_argument('--score-averaging-length', type=int, default=SCORE_AVERAGING_LENGTH)
 parser.add_argument('--score-highest-ratio', type=float, default=SCORE_HIGHEST_RATIO)
+parser.add_argument('--tes-extend', type=str, default=str(TES_EXTEND))
+parser.add_argument('--tes-extend-ratio', type=float, default=TES_EXTEND_RATIO)
 
 parser.add_argument('--log-interval', type=int, default=LOG_INTERVAL)
 parser.add_argument('--score-log-interval', type=int, default=SCORE_LOG_INTERVAL)
@@ -173,6 +177,7 @@ convert_boolean_arg(args, "psc_use")
 convert_boolean_arg(args, "color_averaging_in_ale")
 convert_boolean_arg(args, "color_maximizing_in_gs")
 convert_boolean_arg(args, "reset_max_reward")
+convert_boolean_arg(args, "tes_extend")
 convert_boolean_arg(args, "display")
 convert_boolean_arg(args, "verbose")
 

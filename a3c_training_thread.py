@@ -112,6 +112,7 @@ class A3CTrainingThread(object):
       self.episode_values = []
       self.episode_liveses = []
       self.episode_scores = Episode_scores(options)
+    self.initial_lives = self.game_state.initial_lives
 
     if (self.thread_index == 0) and (self.options.record_new_record_dir is not None):
       if not os.path.exists(self.options.record_new_record_dir):
@@ -296,12 +297,16 @@ class A3CTrainingThread(object):
         if self.episode_reward > self.max_reward:
           self.max_reward = self.episode_reward
           if self.episode_scores.is_highscore(self.episode_reward):
-            print("[OHL]SCORE={:9d},s={:9d},th={},lives={},steps={}".format(self.episode_reward,  global_t, self.thread_index, self.game_state.lives, self.steps))
-            states = self.episode_states[-self.options.train_episode_steps:]
-            actions = self.episode_actions[-self.options.train_episode_steps:]
-            rewards = self.episode_rewards[-self.options.train_episode_steps:]
-            values = self.episode_values[-self.options.train_episode_steps:]
-            liveses = self.episode_liveses[-self.options.train_episode_steps-1:]
+            tes = self.options.train_episode_steps
+            if self.options.tes_extend and self.initial_lives != 0:
+              tes *= self.options.tes_extend_ratio * (self.game_state.lives / self.initial_lives)
+              tes = int(tes)
+            print("[OHL]SCORE={:9d},s={:9d},th={},lives={},steps={},tes={}".format(self.episode_reward,  global_t, self.thread_index, self.game_state.lives, self.steps, tes))
+            states = self.episode_states[-tes:]
+            actions = self.episode_actions[-tes:]
+            rewards = self.episode_rewards[-tes:]
+            values = self.episode_values[-tes:]
+            liveses = self.episode_liveses[-tes-1:]
 
       R = 0.0
       if not terminal_end:
@@ -321,7 +326,7 @@ class A3CTrainingThread(object):
       # compute and accmulate gradients
       for(ai, ri, si, Vi) in zip(actions, rewards, states, values):
         # Consider the number of lives
-        if self.game_state.initial_lives != 0.0 and not self.terminate_on_lives_lost:
+        if self.initial_lives != 0.0 and not self.terminate_on_lives_lost:
           prev_lives = liveses.pop()
           if prev_lives > lives:
             weight = self.options.lives_lost_weight

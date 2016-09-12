@@ -6,7 +6,21 @@ if [ $# -ne 1 ]; then
 fi
 
 program="a3c.py"
+comment=""
 case $1 in
+  "montezuma-b-rap000-avg")
+    comment="0-3M:cavg, 3-200M:tes=30, tes-extend, llr=0, llrr=0, rap=0.00, cavg"
+    rom="montezuma_revenge.bin"
+    option="--train-episode-steps=30 --tes-extend=True --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.00 --randomness-time=3000 --end-mega-step=100 --log-interval=800 --color-maximizing-in-gs=False --color-averaging-in-ale=True --max-mega-step=200"
+    ;;
+  "montezuma-8-max200")
+    rom="montezuma_revenge.bin"
+    option="--train-episode-steps=30 --lives-lost-reward=-0.03 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000 --end-mega-step=80 --log-interval=800 --max-to-keep=5 --color-maximizing-in-gs=False --color-averaging-in-ale=True --max-mega-step=200"
+    ;;
+  "montezuma-8-llrr0")
+    rom="montezuma_revenge.bin"
+    option="--train-episode-steps=30 --lives-lost-reward=-0.03 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000 --end-mega-step=80 --log-interval=800 --max-to-keep=5 --color-maximizing-in-gs=False --color-averaging-in-ale=True --lives-lost-rratio=0.0"
+    ;;
   "montezuma-8")
     rom="montezuma_revenge.bin"
     option="--train-episode-steps=30 --lives-lost-reward=-0.03 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.0 --randomness-time=3000 --end-mega-step=80 --log-interval=800 --max-to-keep=5 --color-maximizing-in-gs=False --color-averaging-in-ale=True"
@@ -46,10 +60,11 @@ case $1 in
 esac
 
 echo "runset=$1"
+echo "comment=$comment"
 echo "rom=$rom"
 echo "option=$option"
 
-. activate tensorflow
+#. activate tensorflow
 python $program --rom $rom $option 
 
 
