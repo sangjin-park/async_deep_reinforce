@@ -303,10 +303,13 @@ class A3CTrainingThread(object):
       if self.options.train_episode_steps > 0:
         if self.episode_reward > self.max_reward:
           self.max_reward = self.episode_reward
-          if self.episode_scores.is_highscore(self.episode_reward):
+          if self.episode_scores.is_highscore(self.episode_reward) or \
+            self.game_state.lives == self.initial_lives:
             tes = self.options.train_episode_steps
             if self.options.tes_extend and self.initial_lives != 0:
               tes *= self.options.tes_extend_ratio * (self.game_state.lives / self.initial_lives)
+              if self.game_state.lives == self.initial_lives:
+                tes *= 2
               tes = int(tes)
             print("[OHL]SCORE={:9d},s={:9d},th={},lives={},steps={},tes={}".format(self.episode_reward,  global_t, self.thread_index, self.game_state.lives, self.steps, tes))
             states = self.episode_states[-tes:]
