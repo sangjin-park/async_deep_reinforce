@@ -150,8 +150,15 @@ class GameState(object):
     resized_screen = cv2.resize(reshaped_screen, (84, 110))
     
     x_t = resized_screen[18:102,:]
+    x_t_uint8 = x_t
     
-    # pseudo-count
+    if reshape:
+      x_t = np.reshape(x_t, (84, 84, 1))
+    x_t = x_t.astype(np.float32)
+    x_t *= (1.0/255.0)
+    return reward, terminal, x_t, x_t_uint8
+
+  def pseudo_count(self, x_t):
     psc_reward = 0.0
     if self.psc_use:
       psc_image = cv2.resize(x_t, (self.psc_frsize, self.psc_frsize))
@@ -162,13 +169,8 @@ class GameState(object):
     # update covered rooms
     if self.options.rom == "montezuma_revenge.bin":
       self.update_montezuma_rooms()
-
-    if reshape:
-      x_t = np.reshape(x_t, (84, 84, 1))
-    x_t = x_t.astype(np.float32)
-    x_t *= (1.0/255.0)
-    return reward, terminal, x_t, psc_reward
     
+    return psc_reward
     
   def _setup_display(self):
     if sys.platform == 'darwin':
@@ -190,7 +192,8 @@ class GameState(object):
 
     self._have_prev_screen_RGB = False
     self.terminal = False
-    _, _, x_t, _ = self._process_frame(0, False)
+    _, _, x_t, x_t_uint8 = self._process_frame(0, False)
+    _ = self.pseudo_count(x_t_uint8)
     
     self.reward = 0
     self.s_t = np.stack((x_t, x_t, x_t, x_t), axis = 2)
@@ -209,23 +212,40 @@ class GameState(object):
   def process(self, action):
     # convert original 18 action index to minimal action set index
     real_action = self.real_actions[action]
-
-    # altered for speed up (reduce getScreen and color_maximizing)
     reward = 0
-    for _ in range(self.options.frames_skip_in_gs - 1):
-      r, t = self._process_action(real_action)
-      reward = reward + r
-      if t:
-        break
 
-    r, t, x_t1, psc_r = self._process_frame(real_action, True)
-    reward = reward + r
+    if self.options.stack_frames_in_gs:
+      s_t1 = []
+      terminal = False
+      for _ in range(self.options.frames_skip_in_gs):
+        if not terminal:
+          r, t, x_t1, x_t_uint8 = self._process_frame(real_action, False)
+          reward = reward + r
+          terminal = terminal or t
+        s_t1.append(x_t1)
+      self.s_t1 = np.stack(s_t1, axis = 2)
+      # for _ in range(self.options.frames_skip_in_gs):
+      #   r, t, x_t1, x_t_uint8 = self._process_frame(real_action, True)
+      #   reward = reward + r
+      #   self.s_t1 = np.append(self.s_t[:,:,1:], x_t1, axis = 2)
+      #   if t:
+      #     break
+    else:
+      # altered for speed up (reduce getScreen and color_maximizing)
+      for _ in range(self.options.frames_skip_in_gs - 1):
+        r, t = self._process_action(real_action)
+        reward = reward + r
+        if t:
+          break
+
+      r, t, x_t1, x_t_uint8 = self._process_frame(real_action, True)
+      reward = reward + r
+      self.s_t1 = np.append(self.s_t[:,:,1:], x_t1, axis = 2)
 
     self.reward = reward
     self.terminal = t
-    self.s_t1 = np.append(self.s_t[:,:,1:], x_t1, axis = 2)
-    self.psc_reward = psc_r
 
+    self.psc_reward = self.pseudo_count(x_t_uint8)
     self.lives = float(self.ale.lives())
 
     if self.episode_record_dir is not None:
