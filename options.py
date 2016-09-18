@@ -47,6 +47,8 @@ NO_REWARD_TIME  = 15 # Permitted No reward time in seconds
 
 RANDOMNESS_TIME = 300 # Time to max randomness(1.0)
 RANDOMNESS_LOG_NUM = 30 # The number of randmness log
+GREEDINESS = 0.0 # Greedines in choose action 
+REPEAT_ACTION_RATIO = 0.0 # Repeat previous action ratio
 
 COLOR_AVERAGING_IN_ALE = True # Color averagin in ALE
 COLOR_MAXIMIZING_IN_GS = False # Color maximizing in GS
@@ -142,6 +144,8 @@ parser.add_argument('--randomness-steps', type=float, default=None)
 parser.add_argument('--randomness', type=float, default=None)
 parser.add_argument('--randomness-log-num', type=int, default=RANDOMNESS_LOG_NUM)
 parser.add_argument('--randomness-log-interval', type=int, default=None)
+parser.add_argument('--greediness', type=float, default=GREEDINESS)
+parser.add_argument('--repeat-action-ratio', type=float, default=REPEAT_ACTION_RATIO)
 parser.add_argument('--color-averaging-in-ale', type=str, default=str(COLOR_AVERAGING_IN_ALE))
 parser.add_argument('--frames-skip-in-ale', type=int, default=None)
 parser.add_argument('--color-maximizing-in-gs', type=str, default=str(COLOR_MAXIMIZING_IN_GS))
@@ -190,7 +194,7 @@ if args.color_averaging_in_ale:
   if args.frames_skip_in_ale is None:
     args.frames_skip_in_ale = 4
   args.frames_skip_in_gs = 1
-if args.color_maximizing_in_gs:
+elif args.color_maximizing_in_gs:
   if args.frames_skip_in_gs is None:
     args.frames_skip_in_gs = 4
   args.frames_skip_in_ale = 1

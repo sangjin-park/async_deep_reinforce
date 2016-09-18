@@ -118,6 +118,10 @@ class A3CTrainingThread(object):
     if (self.thread_index == 0) and (self.options.record_new_record_dir is not None):
       if not os.path.exists(self.options.record_new_record_dir):
         os.makedirs(self.options.record_new_record_dir)
+
+    self.greediness = options.greediness
+    self.repeat_action_ratio = options.repeat_action_ratio
+    self.prev_action = 0
     
 
   def _anneal_learning_rate(self, global_time_step):
@@ -127,19 +131,29 @@ class A3CTrainingThread(object):
     return learning_rate
 
   def choose_action(self, pi_values, global_t):
-    # Increase randomness of choice if no reward term is too long
-    if self.no_reward_steps > self.options.no_reward_steps:
-      randomness = (self.no_reward_steps - self.options.no_reward_steps) * self.options.randomness
-      pi_values += randomness
-      pi_values /= sum(pi_values)
-      if self.local_t % self.options.randomness_log_interval == 0:
-        elapsed_time = time.time() - self.start_time
-        print("t={:6.0f},s={:9d},th={}:{}randomness={:.8f}".format(
-              elapsed_time, global_t, self.thread_index, self.indent, randomness))
+    # Add greediness for broader exploration
+    r = random.random()
+    if r < self.greediness:
+      action =  int(r * len(pi_values))
+    elif r < self.repeat_action_ratio:
+      action = self.prev_action
+    else:
+      # Increase randomness of choice if no reward term is too long
+      if self.no_reward_steps > self.options.no_reward_steps:
+        randomness = (self.no_reward_steps - self.options.no_reward_steps) * self.options.randomness
+        pi_values += randomness
+        pi_values /= sum(pi_values)
+        if self.local_t % self.options.randomness_log_interval == 0:
+          elapsed_time = time.time() - self.start_time
+          print("t={:6.0f},s={:9d},th={}:{}randomness={:.8f}".format(
+                elapsed_time, global_t, self.thread_index, self.indent, randomness))
 
-    pi_values -= np.finfo(np.float32).epsneg
-    action_samples = np.random.multinomial(self.options.num_experiments, pi_values)
-    return action_samples.argmax(0)
+      pi_values -= np.finfo(np.float32).epsneg
+      action_samples = np.random.multinomial(self.options.num_experiments, pi_values)
+      action = action_samples.argmax(0)
+
+    self.prev_action = action
+    return action
 
   def _record_score(self, sess, summary_writer, summary_op, score_input, score, global_t):
     summary_str = sess.run(summary_op, feed_dict={
@@ -222,6 +236,7 @@ class A3CTrainingThread(object):
           self.episode_rewards = self.episode_rewards[-self.max_history:]
           self.episode_values = self.episode_values[-self.max_history:]
           self.episode_liveses = self.episode_liveses[-self.max_history:]
+
 
       self.local_t += 1
 
