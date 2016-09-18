@@ -113,6 +113,7 @@ class A3CTrainingThread(object):
       self.episode_liveses = []
       self.episode_scores = Episode_scores(options)
     self.initial_lives = self.game_state.initial_lives
+    self.max_history = int(self.options.train_episode_steps * self.options.tes_extend_ratio * 2.1)
 
     if (self.thread_index == 0) and (self.options.record_new_record_dir is not None):
       if not os.path.exists(self.options.record_new_record_dir):
@@ -215,6 +216,12 @@ class A3CTrainingThread(object):
         self.episode_rewards.append(reward)
         self.episode_values.append(value_)
         self.episode_liveses.append(self.game_state.lives)
+        if len(self.episode_states) > self.max_history * 2:
+          self.episode_states = self.episode_states[-self.max_history:]
+          self.episode_actions = self.episode_actions[-self.max_history:]
+          self.episode_rewards = self.episode_rewards[-self.max_history:]
+          self.episode_values = self.episode_values[-self.max_history:]
+          self.episode_liveses = self.episode_liveses[-self.max_history:]
 
       self.local_t += 1
 
