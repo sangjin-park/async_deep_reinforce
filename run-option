@@ -8,10 +8,60 @@ fi
 program="a3c.py"
 comment=""
 case $1 in
-  "montezuma-b-rap000-avg")
-    comment="0-3M:cavg, 3-200M:tes=30, tes-extend, llr=0, llrr=0, rap=0.00, cavg"
+  "montezuma-c-avg-greedy-rar025-fs1")
+    comment="0-3M:cavg, 3-200M:tes=30, tes-extend, llr=0, llrr=0, cavg, greediness=0.01, rar=0.25, fsale=1"
     rom="montezuma_revenge.bin"
-    option="--train-episode-steps=30 --tes-extend=True --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.00 --randomness-time=3000 --end-mega-step=100 --log-interval=800 --color-maximizing-in-gs=False --color-averaging-in-ale=True --max-mega-step=200"
+    option="--train-episode-steps=30 --tes-extend=True --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=100 --log-interval=800 --color-maximizing-in-gs=False --color-averaging-in-ale=True --frames-skip-in-ale=1 --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
+    ;;
+  "montezuma-c-avg-greedy-rar025-stackf")
+    comment="0-3M:cavg, 3-200M:tes=30, tes-extend, llr=0, llrr=0, cavg, greediness=0.01, rar=0.25, stackf"
+    rom="montezuma_revenge.bin"
+    option="--train-episode-steps=30 --tes-extend=True --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=100 --log-interval=800 --color-maximizing-in-gs=False --color-averaging-in-ale=True --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25 --stack-frames-in-gs=True"
+    ;;
+  "montezuma-c-avg-greedy-rar025")
+    comment="0-3M:cavg, 3-200M:tes=30, tes-extend, llr=0, llrr=0, cavg, greediness=0.01, rar=0.25"
+    rom="montezuma_revenge.bin"
+    option="--train-episode-steps=30 --tes-extend=True --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=100 --log-interval=800 --color-maximizing-in-gs=False --color-averaging-in-ale=True --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
+    ;;
+  "montezuma-c-avg-greedy-rar000")
+    comment="0-3M:cavg, 3-200M:tes=30, tes-extend, llr=0, llrr=0, cavg, greediness=0.01, rar=0.0"
+    rom="montezuma_revenge.bin"
+    option="--train-episode-steps=30 --tes-extend=True --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=100 --log-interval=800 --color-maximizing-in-gs=False --color-averaging-in-ale=True --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.0"
+    ;;
+  "montezuma-c-avg-greedy-rar000-tes90fix")
+    comment="0-3M:cavg, 3-200M:tes=90, tes-extend, llr=0, llrr=0, cavg, greediness=0.01, rar=0.0"
+    rom="montezuma_revenge.bin"
+    option="--train-episode-steps=90 --tes-extend=False --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=100 --log-interval=800 --color-maximizing-in-gs=False --color-averaging-in-ale=True --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.0"
+    ;;
+  "montezuma-b-rap025-avg80")
+    comment="0-3M:cavg, 3-200M:tes=30, tes-extend(new), llr=0, llrr=0, rap=0.25, cavg"
+    rom="montezuma_revenge.bin"
+    option="--train-episode-steps=30 --tes-extend=True --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.25 --randomness-time=3000 --end-mega-step=80 --log-interval=800 --color-maximizing-in-gs=False --color-averaging-in-ale=True --max-mega-step=200"
+    ;;
+  "montezuma-b-rap025-avg-ter10")
+    comment="0-3M:cavg, 3-200M:tes=30, tes-extend, new-ter=10, llr=0, llrr=0, rap=0.25, cavg"
+    rom="montezuma_revenge.bin"
+    option="--train-episode-steps=30 --tes-extend=True --tes-extend-ratio=10.0 --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.25 --randomness-time=3000 --end-mega-step=80 --log-interval=800 --color-maximizing-in-gs=False --color-averaging-in-ale=True --max-mega-step=200"
+    ;;
+  "montezuma-b-rap025-avg")
+    comment="0-3M:cavg, 3-200M:tes=30, tes-extend, llr=0, llrr=0, rap=0.25, cavg"
+    rom="montezuma_revenge.bin"
+    option="--train-episode-steps=30 --tes-extend=True --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.25 --randomness-time=3000 --end-mega-step=80 --log-interval=800 --color-maximizing-in-gs=False --color-averaging-in-ale=True --max-mega-step=200"
+    ;;
+  "montezuma-b-rap025")
+    comment="0-3M:cavg, 3-200M:tes=30, tes-extend, llr=0, llrr=0, rap=0.25, cmax"
+    rom="montezuma_revenge.bin"
+    option="--train-episode-steps=30 --tes-extend=True --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.25 --randomness-time=3000 --end-mega-step=80 --log-interval=800 --color-maximizing-in-gs=True --color-averaging-in-ale=False --max-mega-step=200"
+    ;;
+  "montezuma-b-rap000-ter10")
+    comment="0-3M:cavg, 3-200M:tes=30, tes-extend, ter=10, llr=0, llrr=0, rap=0.00, cmax"
+    rom="montezuma_revenge.bin"
+    option="--train-episode-steps=30 --tes-extend=True --tes-extend-ratio=10.0 --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.00 --randomness-time=3000 --end-mega-step=80 --log-interval=800 --color-maximizing-in-gs=True --color-averaging-in-ale=False --max-mega-step=200"
+    ;;
+  "montezuma-b-rap000")
+    comment="0-3M:cavg, 3-200M:tes=30, tes-extend, llr=0, llrr=0, rap=0.00, cmax"
+    rom="montezuma_revenge.bin"
+    option="--train-episode-steps=30 --tes-extend=True --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --repeat-action-probability=0.00 --randomness-time=3000 --end-mega-step=80 --log-interval=800 --color-maximizing-in-gs=True --color-averaging-in-ale=False --max-mega-step=200"
     ;;
   "montezuma-8-max200")
     rom="montezuma_revenge.bin"
