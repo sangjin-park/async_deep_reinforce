@@ -16,10 +16,15 @@ The following graph is the average score of Montezuma's Revenge.
 
 ![learning result after 39M steps](https://github.com/Itsukara/async_deep_reinforce/blob/master/learning-curves/montezuma-psc-39M.png)
 
-0 - 30M steps: Pseudo-count based reward is ON, on-highscore-learning is ON. (--psc-use=True --train-episode-steps=150)
+0 - 30M steps: Pseudo-count based reward is ON. (--psc-use=True)
 
-30 - 30M steps: Above + Reset highscore in every episode. (--reset-max-reward=True)
+30 - 30M steps: Above + Reset highscore in every episode. (--train-episode-steps=150 --reset-max-reward=True)
 
+## Best Learning curve of Monezuma's Revenge
+
+The following graph is the best Learning Curve of Montezuma's Revenge (2016/9/16). Best score is 2500 and peak average score is more than 1500 point. 
+ 
+![best learning result](https://cdn-ak.f.st-hatena.com/images/fotolife/I/Itsukara/20160916/20160916141555.png)
 
 ## Play movie
 
