@@ -28,6 +28,8 @@ class GameState(object):
     self.episode_record_dir = None
     self.episode = 1
     self.rooms = np.zeros((24), dtype=np.int)
+    self.prev_room_no = 1
+    self.room_no = 1
 
     if display:
       self._setup_display()
@@ -56,7 +58,7 @@ class GameState(object):
       self.psc_k = options.psc_frsize ** 2
       self.psc_beta = options.psc_beta
       self.psc_maxval = options.psc_maxval
-      self.psc_vcount = np.zeros((self.psc_k, self.psc_maxval + 1), dtype=np.float32)
+      self.psc_vcount = np.zeros((self.psc_k, self.psc_maxval + 1), dtype=np.float64)
       self.psc_n = 0
 
     self.reset()
@@ -84,8 +86,12 @@ class GameState(object):
     
     self.psc_n += 1
 
-    if self.psc_n % self.options.score_log_interval == 0:
-      print("[PSC]th={},psc_n={}:psc_reward = {:.8f}".format(self.thread_index, self.psc_n, psc_reward))
+    if self.psc_n % (self.options.score_log_interval * 10) == 0:
+      room = -1
+      if self.options.rom == "montezuma_revenge.bin":
+        ram = self.ale.getRAM()
+        room = ram[3]
+      print("[PSC]th={},psc_n={}:room={},psc_reward={:.8f},RM{:02d}".format(self.thread_index, self.psc_n, room, psc_reward, self.room_no))
 
     return psc_reward   
 
@@ -97,6 +103,8 @@ class GameState(object):
     self.rooms[room_no] += 1
     if self.rooms[room_no] == 1:
       print("[PSC]@@@ NEW ROOM({}) VISITED: visit counts={}".format(room_no, self.rooms))
+    self.prev_room_no = self.room_no
+    self.room_no = room_no
 
   def set_record_screen_dir(self, record_screen_dir):
     print("record_screen_dir", record_screen_dir)
