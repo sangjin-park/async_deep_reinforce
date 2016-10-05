@@ -3,6 +3,7 @@ import tensorflow as tf
 import numpy as np
 import random
 import os
+import pickle
 
 from game_state import GameState
 from game_ac_network import GameACFFNetwork, GameACLSTMNetwork
@@ -13,9 +14,10 @@ import options
 options = options.options
 
 def choose_action(pi_values):
-    pi_values -= np.finfo(np.float32).epsneg
-    action_samples = np.random.multinomial(options.num_experiments, pi_values)
-    return action_samples.argmax(0)
+  pi_values -= np.finfo(np.float32).epsneg
+  action_samples = np.random.multinomial(options.num_experiments, pi_values)
+  return action_samples.argmax(0)
+
 
 # use CPU for display tool
 device = "/cpu:0"
@@ -31,14 +33,31 @@ sess.run(init)
 
 saver = tf.train.Saver()
 checkpoint = tf.train.get_checkpoint_state(options.checkpoint_dir)
+# for pseudo-count
+psc_info = {"psc_n":0, "psc_vcount":None}
 if checkpoint and checkpoint.model_checkpoint_path:
   saver.restore(sess, checkpoint.model_checkpoint_path)
   print("checkpoint loaded:", checkpoint.model_checkpoint_path)
-else:
-  print("Could not find old checkpoint")
+  tokens = checkpoint.model_checkpoint_path.split("-")
+  # set global step
+  global_t = int(tokens[1])
+  print(">>> global step set: ", global_t)
+  # for pseudo-count
+  if options.psc_use:
+    psc_fname = options.checkpoint_dir + '/' + 'psc.' + str(global_t)
+    if os.path.exists(psc_fname):
+      with open(psc_fname, "rb") as f:
+        psc_info = pickle.load(f)
+      print("psc_info loaded:", psc_fname)
+    else:
+      print("psc_info does not exist and not loaded:", psc_fname)
 
 
 game_state = GameState(0, options, display=options.display, no_op_max=30)
+
+# for pseudo-count
+if options.psc_use:
+  game_state.psc_set_psc_info(psc_info)
 
 episode = 0
 while True:
@@ -57,7 +76,9 @@ while True:
 
     action = choose_action(pi_values)
     game_state.process(action)
-    reward += game_state.reward
+    if game_state.reward != 0:
+      reward += game_state.reward
+      print("SCORE=", reward)
 
     # terminate if the play time is too long
     steps += 1
