@@ -209,6 +209,11 @@ class A3CTrainingThread(object):
       terminal = self.game_state.terminal
 
       self.episode_reward += reward
+      if reward > 0 and self.options.rom == "montezuma_revenge.bin":
+        elapsed_time = time.time() - self.start_time
+        print("t={:6.0f},s={:9d},th={}:{}r={:3.0f}RM{:02d}| NEW-SCORE".format(
+              elapsed_time, global_t, self.thread_index, self.indent, self.episode_reward,
+              self.game_state.room_no))
 
       # pseudo-count reward
       if self.options.psc_use:
@@ -235,7 +240,7 @@ class A3CTrainingThread(object):
           self.episode_actions = self.episode_actions[-self.max_history:]
           self.episode_rewards = self.episode_rewards[-self.max_history:]
           self.episode_values = self.episode_values[-self.max_history:]
-          self.episode_liveses = self.episode_liveses[-self.max_history:]
+          self.episode_liveses = self.episode_liveses[-self.max_history-1:]
 
 
       self.local_t += 1
@@ -260,8 +265,23 @@ class A3CTrainingThread(object):
       
       if self.local_t % self.options.score_log_interval == 0:
         elapsed_time = time.time() - self.start_time
-        print("t={:6.0f},s={:9d},th={}:{}r={:3.0f}    |".format(
-              elapsed_time, global_t, self.thread_index, self.indent, self.episode_reward))
+        print("t={:6.0f},s={:9d},th={}:{}r={:3.0f}RM{:02d}| l={:.0f},v={:.5f},pr={:.5f}".format(
+              elapsed_time, global_t, self.thread_index, self.indent,
+              self.episode_reward, self.game_state.room_no,
+              self.game_state.lives, value_, self.game_state.psc_reward))
+
+      if self.game_state.room_no != self.game_state.prev_room_no:
+        elapsed_time = time.time() - self.start_time
+        print("t={:6.0f},s={:9d},th={}:{}RM{:02d}>RM{:02d}| l={:.0f},v={:.5f},pr={:.5f}".format(
+              elapsed_time, global_t, self.thread_index, self.indent, 
+              self.game_state.prev_room_no, self.game_state.room_no,
+              self.game_state.lives, value_, self.game_state.psc_reward))
+
+      if self.game_state.lives < self.episode_liveses[-2]:
+        elapsed_time = time.time() - self.start_time
+        print("t={:6.0f},s={:9d},th={}:{}l={:.0f}>{:.0f}    |".format(
+              elapsed_time, global_t, self.thread_index, self.indent, 
+              self.episode_liveses[-2], self.game_state.lives))
 
       if terminal:
         terminal_end = True
@@ -319,14 +339,14 @@ class A3CTrainingThread(object):
         if self.episode_reward > self.max_reward:
           self.max_reward = self.episode_reward
           if self.episode_scores.is_highscore(self.episode_reward) or \
-            self.game_state.lives == self.initial_lives:
+            self.game_state.lives > self.initial_lives / 2:
             tes = self.options.train_episode_steps
             if self.options.tes_extend and self.initial_lives != 0:
               tes *= self.options.tes_extend_ratio * (self.game_state.lives / self.initial_lives)
               if self.game_state.lives == self.initial_lives:
                 tes *= 2
               tes = int(tes)
-            print("[OHL]SCORE={:9d},s={:9d},th={},lives={},steps={},tes={}".format(self.episode_reward,  global_t, self.thread_index, self.game_state.lives, self.steps, tes))
+            print("[OHL]SCORE={:9d},s={:9d},th={},lives={},steps={},tes={},RM{:02d}".format(self.episode_reward,  global_t, self.thread_index, self.game_state.lives, self.steps, tes, self.game_state.room_no))
             states = self.episode_states[-tes:]
             actions = self.episode_actions[-tes:]
             rewards = self.episode_rewards[-tes:]
