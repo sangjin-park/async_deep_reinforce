@@ -36,9 +36,11 @@ The following is a play movie of Montezuma's Revenge after training 50M steps. I
 
 This code needs Anaconda, tensorflow, opencv3 and Arcade Learning Environment (ALE). After download of gcp-install-a3c-env.tgz, you can use scrips in "gcp-install" directory. Run following.
  
+    $ sudo apt-get install git
+    $ git clone https://github.com/Itsukara/async_deep_reinforce.git
     $ mkdir Download
+    $ cp async_deep_reinforce/gcp-install/gcp-install-a3c-env.tgz Download/
     $ cd Download/
-    $ curl https://github.com/Itsukara/async_deep_reinforce/blob/master/gcp-install/gcp-install-a3c-env.tgz > gcp-install-a3c-env.tgz
     $ tar zxvf gcp-install-a3c-env.tgz
     $ bash -x install-Anaconda.sh
     $ . ~/.bashrc
@@ -46,7 +48,6 @@ This code needs Anaconda, tensorflow, opencv3 and Arcade Learning Environment (A
     $ bash -x install-opencv3.sh
     $ bash -x install-ALE.sh
     $ bash -x install-additionals.sh
-    $ git clone https://github.com/Itsukara/async_deep_reinforce.git
     $ cd async_deep_reinforce
     $ mv checkpoints checkpoints.old
     $ ./run-option-gym montezuma-c-max-greedy-rar025

@@ -2,9 +2,11 @@
 
 ======================================================================================
 ======================================================================================
+$ sudo apt-get install git
+$ git clone https://github.com/Itsukara/async_deep_reinforce.git
 $ mkdir Download
+$ cp async_deep_reinforce/gcp-install/gcp-install-a3c-env.tgz Download/
 $ cd Download/
-$ curl https://github.com/Itsukara/async_deep_reinforce/blob/master/gcp-install/gcp-install-a3c-env.tgz > gcp-install-a3c-env.tgz
 $ tar zxvf gcp-install-a3c-env.tgz
 $ bash -x install-Anaconda.sh
 $ . ~/.bashrc
@@ -12,7 +14,6 @@ $ bash -x install-tensorflow.sh
 $ bash -x install-opencv3.sh
 $ bash -x install-ALE.sh
 $ bash -x install-additionals.sh
-$ git clone https://github.com/Itsukara/async_deep_reinforce.git
 $ cd async_deep_reinforce
 $ mv checkpoints checkpoints.old
 $ ./run-option-gym montezuma-c-max-greedy-rar025
@@ -22,20 +23,53 @@ $ ./run-option-gym montezuma-c-max-greedy-rar025
 
 ======================================================================================
 ======================================================================================
+itsukara@azvm30:~$ sudo apt-get install git
+Reading package lists... Done
+Building dependency tree       
+Reading state information... Done
+The following extra packages will be installed:
+  git-man liberror-perl
+Suggested packages:
+  git-daemon-run git-daemon-sysvinit git-doc git-el git-email git-gui gitk
+  gitweb git-arch git-bzr git-cvs git-mediawiki git-svn
+The following NEW packages will be installed:
+  git git-man liberror-perl
+0 upgraded, 3 newly installed, 0 to remove and 0 not upgraded.
+Need to get 3,306 kB of archives.
+After this operation, 21.9 MB of additional disk space will be used.
+Do you want to continue? [Y/n] y
+Get:1 http://azure.archive.ubuntu.com/ubuntu/ trusty/main liberror-perl all 0.17-1.1 [21.1 kB]
+Get:2 http://azure.archive.ubuntu.com/ubuntu/ trusty-updates/main git-man all 1:1.9.1-1ubuntu0.3 [699 kB]
+Get:3 http://azure.archive.ubuntu.com/ubuntu/ trusty-updates/main git amd64 1:1.9.1-1ubuntu0.3 [2,586 kB]
+Fetched 3,306 kB in 0s (24.8 MB/s)
+Selecting previously unselected package liberror-perl.
+(Reading database ... 28585 files and directories currently installed.)
+Preparing to unpack .../liberror-perl_0.17-1.1_all.deb ...
+Unpacking liberror-perl (0.17-1.1) ...
+Selecting previously unselected package git-man.
+Preparing to unpack .../git-man_1%3a1.9.1-1ubuntu0.3_all.deb ...
+Unpacking git-man (1:1.9.1-1ubuntu0.3) ...
+Selecting previously unselected package git.
+Preparing to unpack .../git_1%3a1.9.1-1ubuntu0.3_amd64.deb ...
+Unpacking git (1:1.9.1-1ubuntu0.3) ...
+Processing triggers for man-db (2.6.7.1-1ubuntu1) ...
+Setting up liberror-perl (0.17-1.1) ...
+Setting up git-man (1:1.9.1-1ubuntu0.3) ...
+Setting up git (1:1.9.1-1ubuntu0.3) ...
+
+itsukara@azvm30:~$ git clone https://github.com/Itsukara/async_deep_reinforce.git
+Cloning into 'async_deep_reinforce'...
+remote: Counting objects: 758, done.
+remote: Compressing objects: 100% (37/37), done.
+remote: Total 758 (delta 14), reused 0 (delta 0), pack-reused 721
+Receiving objects: 100% (758/758), 77.92 MiB | 25.12 MiB/s, done.
+Resolving deltas: 100% (452/452), done.
+Checking connectivity... done.
+
 itsukara@azvm30:~$ mkdir Download
+itsukara@azvm30:~$ cp async_deep_reinforce/gcp-install/gcp-install-a3c-env.tgz Download/
 itsukara@azvm30:~$ cd Download/
-itsukara@azvm30:~/Download$ curl https://github.com/Itsukara/async_deep_reinforce/blob/master/gcp-install/gcp-install-a3c-env.tgz > gcp-install-a3c-env.tgz
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100 37721    0 37721    0     0   307k      0 --:--:-- --:--:-- --:--:--  312k
-itsukara@azvm30:~/Download$ 
-itsukara@azvm30:~/Download$ tar zxvf gcp-install-a3c-env.tgz 
-install-ALE.sh
-install-Anaconda.sh
-install-additionals.sh
-install-opencv3.sh
-install-tensorflow.sh
-install-and-run.log
+itsukara@azvm30:~/Download$ tar zxf gcp-install-a3c-env.tgz 
 itsukara@azvm30:~/Download$ 
 
 
@@ -1561,19 +1595,6 @@ Installing collected packages: atari-py, PyOpenGL, gym
   Running setup.py develop for gym
 Successfully installed PyOpenGL-3.1.0 atari-py-0.0.18 gym-0.4.2
 itsukara@azvm30:~/Download$ 
-
-
-======================================================================================
-======================================================================================
-itsukara@azvm30:~/Download$ git clone https://github.com/Itsukara/async_deep_reinforce.git
-Cloning into 'async_deep_reinforce'...
-remote: Counting objects: 741, done.
-remote: Compressing objects: 100% (20/20), done.
-remote: Total 741 (delta 7), reused 0 (delta 0), pack-reused 721
-Receiving objects: 100% (741/741), 77.87 MiB | 29.07 MiB/s, done.
-Resolving deltas: 100% (445/445), done.
-Checking connectivity... done.
-itsukara@azvm30:~/Download$
 
 
 ======================================================================================
