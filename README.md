@@ -59,11 +59,16 @@ I built the environment using my scripts on Ubuntu 14.04LTS 64bit in Google Clou
 
 To train,
 
-    $ run-option montezuma-4
+    $ ./run-option montezuma-c-max-greedy-rar025
 
-To display the result with game play,
+To display game screen played by the program,
 
-    $ python a3c_display.py --rom=montezuma_revenge.bin
+    $ python a3c_display.py --rom=montezuma_revenge.bin --display=True
+
+To create play movie without displaying the game screen,
+
+    $ python a3c_display.py --rom=montezuma_revenge.bin --record-screen-dir=screen
+    $ run-avconv-all screen # you need avconv
 
 ## Run options
 

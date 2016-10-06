@@ -26,6 +26,6 @@ for d in *; do
   echo "@@@ convert $d"
   cd $d
 #  avconv -y -i "%06d.png"  -b 1500k -s 168x168 ../$d.mp4
-  avconv -r 60 -y -i "%06d.png" -r 30 -b 1500k -s 168x168 ../$d.mp4
+  avconv -r 60 -y -i "%06d.png" -r 30 -b 1500k -s 210x160 ../$d.mp4
   cd ..
 done
