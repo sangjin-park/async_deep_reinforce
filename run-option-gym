@@ -1,0 +1,49 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 runset-name"
+    exit 1
+fi
+
+program="a3c.py"
+comment=""
+case $1 in
+  "montezuma-c-avg-greedy-rar025-stackf")
+    comment="cavg, tes=30, tes-extend, llr=0, llrr=0, cavg, greediness=0.01, rar=0.25"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=30 --tes-extend=True --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=100 --log-interval=800 --color-averaging-in-gs=True --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25 --stack-frames-in-gs=True"
+    ;;
+    
+  "montezuma-c-max-greedy-rar025")
+    comment="cmax tes=30, tes-extend, llr=0, llrr=0, cavg, greediness=0.01, rar=0.25"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=30 --tes-extend=True --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=100 --log-interval=800 --color-maximizing-in-gs=True --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
+    ;;
+
+  "montezuma-c-avg-greedy-rar025")
+    comment="cavg, tes=30, tes-extend, llr=0, llrr=0, cavg, greediness=0.01, rar=0.25"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=30 --tes-extend=True --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=100 --log-interval=800 --color-averaging-in-gs=True --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
+    ;;
+    
+  "montezuma-c-avg-greedy-rar025-3M")
+    comment="cavg, tes=30, tes-extend, llr=0, llrr=0, cavg, greediness=0.01, rar=0.25"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=30 --tes-extend=True --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=3 --log-interval=800 --color-averaging-in-gs=True --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
+    ;;
+    
+  *)
+    echo "Invalid option-set-name: $1"
+    exit 1
+    ;;
+esac
+
+echo "runset=$1"
+echo "comment=$comment"
+echo "gym_env=$gym_env"
+echo "option=$option"
+
+. activate tensorflow
+python $program --use-gym=True --gym-env $gym_env $option 
+
+

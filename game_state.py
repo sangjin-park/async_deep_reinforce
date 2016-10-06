@@ -4,24 +4,30 @@ import numpy as np
 import cv2
 import os
 from math import sqrt
-from ale_python_interface import ALEInterface
 
-def peekActionSize(rom):
-  ale = ALEInterface()
-  ale.loadROM(rom.encode('ascii'))
-  return len(ale.getMinimalActionSet())
+import options
+options = options.options
+if options.use_gym:
+  import gym
+else:
+  from ale_python_interface import ALEInterface
+
 
 class GameState(object):
   def __init__(self, rand_seed, options, display=False, no_op_max=30, thread_index=-1):
-    self.ale = ALEInterface()
-    self.ale.setInt(b'random_seed', rand_seed)
-    self.ale.setFloat(b'repeat_action_probability', options.repeat_action_probability)
-    self.ale.setInt(b'frame_skip', options.frames_skip_in_ale)
-    self.ale.setBool(b'color_averaging', options.color_averaging_in_ale)
+    if options.use_gym:
+      self._display = options.display
+    else:
+      self.ale = ALEInterface()
+      self.ale.setInt(b'random_seed', rand_seed)
+      self.ale.setFloat(b'repeat_action_probability', options.repeat_action_probability)
+      self.ale.setInt(b'frame_skip', options.frames_skip_in_ale)
+      self.ale.setBool(b'color_averaging', options.color_averaging_in_ale)
     self._no_op_max = no_op_max
  
     self.options = options
     self.color_maximizing = options.color_maximizing_in_gs
+    self.color_averaging  = options.color_averaging_in_gs
     # for screen output in _process_frame()
     self.thread_index = thread_index
     self.record_gs_screen_dir = self.options.record_gs_screen_dir
@@ -31,25 +37,30 @@ class GameState(object):
     self.prev_room_no = 1
     self.room_no = 1
 
-    if display:
-      self._setup_display()
+    if options.use_gym:
+      self.gym = gym.make(options.gym_env)
+      print(self.gym.action_space)
+    else:
+      if display:
+        self._setup_display()
     
-    self.ale.loadROM(options.rom.encode('ascii'))
+      self.ale.loadROM(options.rom.encode('ascii'))
 
-    # collect minimal action set
-    self.real_actions = self.ale.getMinimalActionSet()
-    print("real_actions=", self.real_actions)
-    if (len(self.real_actions) != self.options.action_size):
-      print("***********************************************************")
-      print("* action_size != len(real_actions)")
-      print("***********************************************************")
-      sys.exit(1)
+      # collect minimal action set
+      self.real_actions = self.ale.getMinimalActionSet()
+      print("real_actions=", self.real_actions)
+      if (len(self.real_actions) != self.options.action_size):
+        print("***********************************************************")
+        print("* action_size != len(real_actions)")
+        print("***********************************************************")
+        sys.exit(1)
 
     # height=210, width=160
     self._screen = np.empty((210 * 160 * 1), dtype=np.uint8)
-    if self.color_maximizing:
+    if self.color_maximizing or self.color_averaging:
       self._screen_RGB = np.empty((210 * 160 * 3), dtype=np.uint8)
       self._prev_screen_RGB = np.empty((210 *  160 * 3), dtype=np.uint8)
+    self._have_prev_screen_RGB = False
 
     # for pseudo-count
     self.psc_use = options.psc_use
@@ -88,44 +99,68 @@ class GameState(object):
 
     if self.psc_n % (self.options.score_log_interval * 10) == 0:
       room = -1
-      if self.options.rom == "montezuma_revenge.bin":
-        ram = self.ale.getRAM()
-        room = ram[3]
+      if not options.use_gym:
+        if self.options.rom == "montezuma_revenge.bin":
+          ram = self.ale.getRAM()
+          room = ram[3]
       print("[PSC]th={},psc_n={}:room={},psc_reward={:.8f},RM{:02d}".format(self.thread_index, self.psc_n, room, psc_reward, self.room_no))
 
     return psc_reward   
 
   # for montezuma's revenge
   def update_montezuma_rooms(self):
-    ram = self.ale.getRAM()
-    # room_no = ram[0x83]
-    room_no = ram[3]
-    self.rooms[room_no] += 1
-    if self.rooms[room_no] == 1:
-      print("[PSC]@@@ NEW ROOM({}) VISITED: visit counts={}".format(room_no, self.rooms))
-    self.prev_room_no = self.room_no
-    self.room_no = room_no
+    if not options.use_gym:
+      ram = self.ale.getRAM()
+      # room_no = ram[0x83]
+      room_no = ram[3]
+      self.rooms[room_no] += 1
+      if self.rooms[room_no] == 1:
+        print("[PSC]@@@ NEW ROOM({}) VISITED: visit counts={}".format(room_no, self.rooms))
+      self.prev_room_no = self.room_no
+      self.room_no = room_no
 
   def set_record_screen_dir(self, record_screen_dir):
-    print("record_screen_dir", record_screen_dir)
-    self.ale.setString(b'record_screen_dir', str.encode(record_screen_dir))
-    self.ale.loadROM(self.options.rom.encode('ascii'))
-    self.reset()
+    if options.use_gym:
+      print("record_screen_dir", record_screen_dir)
+      self.gym.monitor.start(record_screen_dir)
+      self.reset()
+    else:
+      print("record_screen_dir", record_screen_dir)
+      self.ale.setString(b'record_screen_dir', str.encode(record_screen_dir))
+      self.ale.loadROM(self.options.rom.encode('ascii'))
+      self.reset()
+
+  def close_record_screen_dir(self):
+    if options.use_gym:
+      self.gym.monitor.close()
+    else:
+      pass
 
   def _process_action(self, action):
-    reward = self.ale.act(action)
-    terminal = self.ale.game_over()
-    self.terminal = terminal
-    self._have_prev_screen_RGB = False
-    return reward, terminal
+    if options.use_gym:
+      observation, reward, terminal, _ = self.gym.step(action)
+      self._prev_screen_RGB = observation
+      self._have_prev_screen_RGB = True
+      return reward, terminal
+    else:
+      reward = self.ale.act(action)
+      terminal = self.ale.game_over()
+      self.terminal = terminal
+      self._have_prev_screen_RGB = False
+      return reward, terminal
     
   def _process_frame(self, action, reshape):
     if self.terminal:
       reward = 0
       terminal = True
+    elif options.use_gym:
+      observation, reward, terminal, _ = self.gym.step(action)
+      self._screen_RGB = observation
+      self.terminal = terminal
     else:
       # get previous screen
-      if self.color_maximizing and not self._have_prev_screen_RGB:
+      if (self.color_maximizing or self.color_averaging) \
+              and not self._have_prev_screen_RGB:
         self.ale.getScreenRGB(self._prev_screen_RGB)
         self._have_prev_screen_RGB = True
 
@@ -135,14 +170,18 @@ class GameState(object):
       self.terminal = terminal
 
     # screen shape is (210, 160, 1)
-    if self.color_maximizing:
-      self.ale.getScreenRGB(self._screen_RGB)
+    if self.color_maximizing or self.color_averaging:
+      if not options.use_gym:
+        self.ale.getScreenRGB(self._screen_RGB)
       if self._have_prev_screen_RGB:
-        screen = np.maximum(self._prev_screen_RGB, self._screen_RGB)
+        if self.color_maximizing:
+          screen = np.maximum(self._prev_screen_RGB, self._screen_RGB)
+        else: # self.color_averaging:
+          screen = np.mean((self._prev_screen_RGB, self._screen_RGB), axis=0).astype(np.uint8)
       else:
         screen = self._screen_RGB
       screen = screen.reshape((210, 160, 3))
-      self._screen = cv2.cvtColor(screen, cv2.COLOR_BGR2GRAY)
+      self._screen = cv2.cvtColor(screen, cv2.COLOR_RGB2GRAY)
       # swap screen_RGB
       swap_screen_RGB = self._prev_screen_RGB
       self._prev_screen_RGB = self._screen_RGB
@@ -175,8 +214,9 @@ class GameState(object):
       psc_reward = self.psc_add_image(psc_image)
 
     # update covered rooms
-    if self.options.rom == "montezuma_revenge.bin":
-      self.update_montezuma_rooms()
+    if not options.use_gym:
+      if self.options.rom == "montezuma_revenge.bin":
+        self.update_montezuma_rooms()
     
     return psc_reward
     
@@ -190,13 +230,19 @@ class GameState(object):
     self.ale.setBool(b'display_screen', True)
 
   def reset(self):
-    self.ale.reset_game()
+    if options.use_gym:
+      self.gym.reset()
+    else:
+      self.ale.reset_game()
     
     # randomize initial state
     if self._no_op_max > 0:
       no_op = np.random.randint(0, self._no_op_max // self.options.frames_skip_in_ale + 1)
       for _ in range(no_op):
-        self.ale.act(0)
+        if options.use_gym:
+          self.gym.step(0)
+        else:
+          self.ale.act(0)
 
     self._have_prev_screen_RGB = False
     self.terminal = False
@@ -206,7 +252,10 @@ class GameState(object):
     self.reward = 0
     self.s_t = np.stack((x_t, x_t, x_t, x_t), axis = 2)
 
-    self.lives = float(self.ale.lives())
+    if self.options.use_gym:
+      self.lives = 0.0
+    else:
+      self.lives = float(self.ale.lives())
     self.initial_lives = self.lives
 
     if (self.thread_index == 0) and (self.record_gs_screen_dir is not None):
@@ -218,8 +267,13 @@ class GameState(object):
       print("game_state: writing screen images to ", self.episode_record_dir)
     
   def process(self, action):
-    # convert original 18 action index to minimal action set index
-    real_action = self.real_actions[action]
+    if options.use_gym:
+      real_action = action
+      if self._display:
+        self.gym.render()
+    else:
+      # convert original 18 action index to minimal action set index
+      real_action = self.real_actions[action]
     reward = 0
 
     if self.options.stack_frames_in_gs:
@@ -244,6 +298,7 @@ class GameState(object):
         r, t = self._process_action(real_action)
         reward = reward + r
         if t:
+          self.terminal = True
           break
 
       r, t, x_t1, x_t_uint8 = self._process_frame(real_action, True)
@@ -254,7 +309,10 @@ class GameState(object):
     self.terminal = t
 
     self.psc_reward = self.pseudo_count(x_t_uint8)
-    self.lives = float(self.ale.lives())
+    if self.options.use_gym:
+      self.lives = 0.0
+    else:
+      self.lives = float(self.ale.lives())
 
     if self.episode_record_dir is not None:
       filename = "{:06d}.png".format(self.stepNo)

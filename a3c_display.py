@@ -53,17 +53,18 @@ if checkpoint and checkpoint.model_checkpoint_path:
       print("psc_info does not exist and not loaded:", psc_fname)
 
 
-game_state = GameState(0, options, display=options.display, no_op_max=30)
+game_state = GameState(0, options, display=options.display, no_op_max=30, thread_index=0)
 
 # for pseudo-count
 if options.psc_use:
   game_state.psc_set_psc_info(psc_info)
 
-episode = 0
-while True:
-  episode += 1
+if options.use_gym and (options.record_screen_dir is not None):
+  game_state.set_record_screen_dir(options.record_screen_dir)
+
+for episode in range(options.num_episode_record):
   episode_record_dir = None
-  if options.record_screen_dir is not None:
+  if (not options.use_gym) and (options.record_screen_dir is not None):
     episode_dir = options.rom.split(".")[0] + "-e{:03d}".format(episode)
     episode_record_dir = os.path.join(options.record_screen_dir, episode_dir)
     os.makedirs(episode_record_dir)
@@ -86,12 +87,16 @@ while True:
     if steps > options.max_play_steps:
       terminal =  True
 
-    game_state.update()
-
     if terminal:
       game_state.reset()
       print("Game finised with score=", reward)
       break
-  if options.record_screen_dir is not None:
+    else:
+      game_state.update()
+
+  if (not options.use_gym) and (options.record_screen_dir is not None):
     new_episode_record_dir = episode_record_dir + "-r{:04d}-s{:04d}".format(reward, steps)
     os.rename(episode_record_dir, new_episode_record_dir)
+
+if options.use_gym:
+  game_state.close_record_screen_dir()

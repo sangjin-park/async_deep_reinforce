@@ -277,11 +277,12 @@ class A3CTrainingThread(object):
               self.game_state.prev_room_no, self.game_state.room_no,
               self.game_state.lives, value_, self.game_state.psc_reward))
 
-      if self.game_state.lives < self.episode_liveses[-2]:
-        elapsed_time = time.time() - self.start_time
-        print("t={:6.0f},s={:9d},th={}:{}l={:.0f}>{:.0f}    |".format(
-              elapsed_time, global_t, self.thread_index, self.indent, 
-              self.episode_liveses[-2], self.game_state.lives))
+      if self.options.train_episode_steps > 0:
+        if self.game_state.lives < self.episode_liveses[-2]:
+          elapsed_time = time.time() - self.start_time
+          print("t={:6.0f},s={:9d},th={}:{}l={:.0f}>{:.0f}    |".format(
+                elapsed_time, global_t, self.thread_index, self.indent, 
+                self.episode_liveses[-2], self.game_state.lives))
 
       if terminal:
         terminal_end = True

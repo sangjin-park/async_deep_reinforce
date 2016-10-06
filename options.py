@@ -12,6 +12,8 @@ INITIAL_ALPHA_HIGH = 1e-2   # log_uniform high limit for learning rate
 
 PARALLEL_SIZE = 8 # parallel thread size
 ROM = "breakout.bin"     # action size = 3
+GYM_ENV = "MontezumaRevenge-v0" # openAI gym environment
+USE_GYM = False # use openAI gym
 
 INITIAL_ALPHA_LOG_RATE = 0.4226 # log_uniform interpolate rate for learning rate (around 7 * 10^-4)
 GAMMA = 0.99 # discount factor for rewards
@@ -52,6 +54,7 @@ REPEAT_ACTION_RATIO = 0.0 # Repeat previous action ratio
 
 COLOR_AVERAGING_IN_ALE = True # Color averagin in ALE
 COLOR_MAXIMIZING_IN_GS = False # Color maximizing in GS
+COLOR_AVERAGING_IN_GS = False # Color averaging in GS
 STACK_FRAMES_IN_GS = False # Stack frames in gs (not skip them)
 
 TRAIN_EPISODE_STEPS = 0 # train steps for new record (no train if "< LOCAL_T_MAX". record only)
@@ -62,16 +65,17 @@ SCORE_HIGHEST_RATIO = 0.5 # Threshold of highest ratio to be highscore
 TES_EXTEND = False # Extend train-episode-steps based of remaining lives 
 TES_EXTEND_RATIO = 5.0 # Multiply this value to train-episode-steps when full lives 
 
-LOG_INTERVAL = 100 # Log output interval (steps)
+LOG_INTERVAL = 900 # Log output interval (steps)
 SCORE_LOG_INTERVAL = 900 # Score log output interval (steps)
 PERFORMANCE_LOG_INTERVAL = 1500 # Performance log output interval (steps)
 AVERAGE_SCORE_LOG_INTERVAL = 10 # Average score log output interval (eipsode)
 
+NUM_EPISODE_RECORD = 20 # Number of episode to record
 RECORD_SCREEN_DIR = None # Game screen (output of ALE) record directory 
 RECORD_GS_SCREEN_DIR = None # Game screen (input to A3C) record directory
 RECORD_NEW_RECORD_DIR = None # New record record dirctory
 
-DISPLAY = True # Display in a3c_display.py (set False in headless environment)
+DISPLAY = False # Display in a3c_display.py (set False in headless environment)
 VERBOSE = True # Output options (to record run parameter)
 
 
@@ -104,6 +108,8 @@ parser.add_argument('--initial-alpha-high', type=float, default=INITIAL_ALPHA_HI
 
 parser.add_argument('--parallel-size', type=int, default=PARALLEL_SIZE)
 parser.add_argument('--rom', type=str, default=ROM)
+parser.add_argument('--gym-env', type=str, default=GYM_ENV)
+parser.add_argument('--use-gym', type=str, default=str(USE_GYM))
 parser.add_argument('--action-size', type=int, default=None)
 
 parser.add_argument('--initial-alpha-log-rate', type=float, default=INITIAL_ALPHA_LOG_RATE)
@@ -150,6 +156,7 @@ parser.add_argument('--repeat-action-ratio', type=float, default=REPEAT_ACTION_R
 parser.add_argument('--color-averaging-in-ale', type=str, default=str(COLOR_AVERAGING_IN_ALE))
 parser.add_argument('--frames-skip-in-ale', type=int, default=None)
 parser.add_argument('--color-maximizing-in-gs', type=str, default=str(COLOR_MAXIMIZING_IN_GS))
+parser.add_argument('--color-averaging-in-gs', type=str, default=str(COLOR_AVERAGING_IN_GS))
 parser.add_argument('--frames-skip-in-gs', type=int, default=None)
 parser.add_argument('--stack-frames-in-gs', type=str, default=str(STACK_FRAMES_IN_GS))
 parser.add_argument('--train-episode-steps', type=int, default=TRAIN_EPISODE_STEPS)
@@ -165,6 +172,7 @@ parser.add_argument('--score-log-interval', type=int, default=SCORE_LOG_INTERVAL
 parser.add_argument('--performance-log-interval', type=int, default=PERFORMANCE_LOG_INTERVAL)
 parser.add_argument('--average-score-log-interval', type=int, default=AVERAGE_SCORE_LOG_INTERVAL)
 
+parser.add_argument('--num-episode-record', type=str, default=NUM_EPISODE_RECORD)
 parser.add_argument('--record-screen-dir', type=str, default=RECORD_SCREEN_DIR)
 parser.add_argument('--record-gs-screen-dir', type=str, default=RECORD_GS_SCREEN_DIR)
 parser.add_argument('--record-new-record-dir', type=str, default=RECORD_NEW_RECORD_DIR)
@@ -175,6 +183,7 @@ parser.add_argument('-v', '--verbose', type=str, default=str(VERBOSE))
 
 args = parser.parse_args()
 
+convert_boolean_arg(args, "use_gym")
 convert_boolean_arg(args, "use_gpu")
 convert_boolean_arg(args, "use_lstm")
 convert_boolean_arg(args, "terminate_on_lives_lost")
@@ -182,15 +191,30 @@ convert_boolean_arg(args, "train_in_eval")
 convert_boolean_arg(args, "psc_use")
 convert_boolean_arg(args, "color_averaging_in_ale")
 convert_boolean_arg(args, "color_maximizing_in_gs")
+convert_boolean_arg(args, "color_averaging_in_gs")
 convert_boolean_arg(args, "stack_frames_in_gs")
 convert_boolean_arg(args, "reset_max_reward")
 convert_boolean_arg(args, "tes_extend")
 convert_boolean_arg(args, "display")
 convert_boolean_arg(args, "verbose")
 
-if (args.color_averaging_in_ale and args.color_maximizing_in_gs) or\
-   not (args.color_averaging_in_ale or args.color_maximizing_in_gs):
-  print("Specify just one of color_averaging_in_ale or args_color_maximizing")
+if args.use_gym:
+  args.rom = args.gym_env
+  args.color_averaging_in_ale = False
+  # if not args.color_averaging_in_gs:
+  #   args.color_maximizing_in_gs = True
+  if not args.color_maximizing_in_gs:
+    args.color_averaging_in_gs = True
+
+num_color_options = 0
+if args.color_averaging_in_ale:
+  num_color_options += 1
+if args.color_maximizing_in_gs:
+  num_color_options += 1
+if args.color_averaging_in_gs:
+  num_color_options += 1
+if num_color_options != 1:
+  print("Specify just one of color_averaging_in_ale, args_color_maximizing, args_color_maximizing")
   sys.exit(1)
 
 if args.stack_frames_in_gs:
@@ -201,6 +225,10 @@ elif args.color_averaging_in_ale:
     args.frames_skip_in_ale = 4
   args.frames_skip_in_gs = 1
 elif args.color_maximizing_in_gs:
+  if args.frames_skip_in_gs is None:
+    args.frames_skip_in_gs = 4
+  args.frames_skip_in_ale = 1
+else: # args.color_averaging_in_gs
   if args.frames_skip_in_gs is None:
     args.frames_skip_in_gs = 4
   args.frames_skip_in_ale = 1
@@ -230,9 +258,18 @@ if args.randomness is None:
 if args.randomness_log_interval is None:
   args.randomness_log_interval = args.randomness_steps / args.randomness_log_num
 
-if args.action_size is None:
-  from game_state import peekActionSize
-  args.action_size = peekActionSize(args.rom)
+def peekActionSize(rom):
+  if args.use_gym:
+    import gym
+    env = gym.make(args.gym_env)
+    return env.action_space.n
+  else:
+    from ale_python_interface import ALEInterface
+    ale = ALEInterface()
+    ale.loadROM(rom.encode('ascii'))
+    return len(ale.getMinimalActionSet())
+
+args.action_size = peekActionSize(args.rom)
 
 options = args
 if options.verbose:
