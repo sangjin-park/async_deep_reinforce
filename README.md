@@ -48,7 +48,7 @@ This code needs Anaconda, tensorflow, opencv3 and Arcade Learning Environment (A
     $ bash -x install-opencv3.sh
     $ bash -x install-ALE.sh
     $ bash -x install-additionals.sh
-    $ cd async_deep_reinforce
+    $ cd ../async_deep_reinforce
     $ mv checkpoints checkpoints.old
     $ ./run-option-gym montezuma-c-max-greedy-rar025
 
