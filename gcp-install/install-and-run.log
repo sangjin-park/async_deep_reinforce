@@ -14,7 +14,7 @@ $ bash -x install-tensorflow.sh
 $ bash -x install-opencv3.sh
 $ bash -x install-ALE.sh
 $ bash -x install-additionals.sh
-$ cd async_deep_reinforce
+$ cd ../async_deep_reinforce
 $ mv checkpoints checkpoints.old
 $ ./run-option-gym montezuma-c-max-greedy-rar025
 
@@ -62,14 +62,20 @@ Cloning into 'async_deep_reinforce'...
 remote: Counting objects: 758, done.
 remote: Compressing objects: 100% (37/37), done.
 remote: Total 758 (delta 14), reused 0 (delta 0), pack-reused 721
-Receiving objects: 100% (758/758), 77.92 MiB | 25.12 MiB/s, done.
+Receiving objects: 100% (758/758), 77.92 MiB | 25.19 MiB/s, done.
 Resolving deltas: 100% (452/452), done.
 Checking connectivity... done.
 
 itsukara@azvm30:~$ mkdir Download
 itsukara@azvm30:~$ cp async_deep_reinforce/gcp-install/gcp-install-a3c-env.tgz Download/
 itsukara@azvm30:~$ cd Download/
-itsukara@azvm30:~/Download$ tar zxf gcp-install-a3c-env.tgz 
+itsukara@azvm30:~/Download$ tar zxvf gcp-install-a3c-env.tgz 
+install-ALE.sh
+install-Anaconda.sh
+install-additionals.sh
+install-opencv3.sh
+install-tensorflow.sh
+install-and-run.log
 itsukara@azvm30:~/Download$ 
 
 
@@ -1599,62 +1605,204 @@ itsukara@azvm30:~/Download$
 
 ======================================================================================
 ======================================================================================
-itsukara@azvm30:~/Download$ cd async_deep_reinforce/
-itsukara@azvm30:~/Download/async_deep_reinforce$ mv checkpoints checkpoints.old
-itsukara@azvm30:~/Download/async_deep_reinforce$ ./run-option-gym montezuma-c-max-greedy-rar025
-runset=montezuma-c-max-greedy-rar025
-comment=cmax tes=30, tes-extend, llr=0, llrr=0, cavg, greediness=0.01, rar=0.25
-gym_env=MontezumaRevenge-v0
-option=--use-gym=True --train-episode-steps=30 --tes-extend=True --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=100 --log-interval=800 --color-maximizing-in-gs=True --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25
-CondaEnvironmentNotFoundError: Could not find environment: tensorflow .
-You can list all discoverable environments with `conda info --envs`.
+itsukara@azvm30:~/Download$ cd ../async_deep_reinforce/
+itsukara@azvm30:~/async_deep_reinforce$ mv checkpoints checkpoints.old
+itsukara@azvm30:~/async_deep_reinforce$ run-option montezuma-c-avg-greedy-rar025
+runset=montezuma-c-avg-greedy-rar025
+comment=0-3M:cavg, 3-200M:tes=30, tes-extend, llr=0, llrr=0, cavg, greediness=0.01, rar=0.25
+rom=montezuma_revenge.bin
+option=--train-episode-steps=30 --tes-extend=True --lives-lost-reward=0.0 --lives-lost-rratio=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=100 --log-interval=800 --color-maximizing-in-gs=False --color-averaging-in-ale=True --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25
+A.L.E: Arcade Learning Environment (version 0.5.1)
+[Powered by Stella]
+Use -help for help screen.
+Warning: couldn't load settings file: ./ale.cfg
+Game console created:
+  ROM file:  montezuma_revenge.bin
+  Cart Name: Montezuma's Revenge - Starring Panama Joe (1983) (Parker Bros)
+  Cart MD5:  3347a6dd59049b15a38394aa2dafa585
+  Display Format:  AUTO-DETECT ==> NTSC
+  ROM Size:        8192
+  Bankswitch Type: AUTO-DETECT ==> E0
 
-
-[2016-10-06 09:13:33,348] Making new env: MontezumaRevenge-v0
+Running ROM file...
+Random seed is 0
 ******************** options ********************
-Namespace(action_size=18, average_score_log_interval=10, basic_income=0.0, basic_income_time=100000000000000000000, checkpoint_dir='checkpoints', color_averaging_in_ale=False, color_averaging_in_gs=False, color_maximizing_in_gs=True, display=False, end_mega_step=100, end_time_step=100000000, entropy_beta=0.01, frames_skip_in_ale=1, frames_skip_in_gs=4, gamma=0.99, grad_norm_clip=40.0, greediness=0.01, gym_env='MontezumaRevenge-v0', initial_alpha_high=0.01, initial_alpha_log_rate=0.4226, initial_alpha_low=0.0001, lives_lost_reward=0.0, lives_lost_rratio=0.0, lives_lost_weight=1.0, local_t_max=5, log_file='tmp/a3c_log', log_interval=800, max_mega_step=200, max_play_steps=4500, max_play_time=300, max_time_step=200000000, max_to_keep=None, no_reward_steps=9000, no_reward_time=600, num_episode_record=20, num_experiments=1, parallel_size=8, performance_log_interval=1500, psc_beta=0.01, psc_frsize=42, psc_maxval=127, psc_use=True, randomness=0.00022222222222222223, randomness_log_interval=150.0, randomness_log_num=30, randomness_steps=4500, randomness_time=300, record_gs_screen_dir=None, record_new_record_dir=None, record_screen_dir=None, repeat_action_probability=0.0, repeat_action_ratio=0.25, reset_max_reward=True, reward_clip=1.0, rmsp_alpha=0.99, rmsp_epsilon=0.1, rom='MontezumaRevenge-v0', save_mega_interval=3, save_time_interval=3000000, score_averaging_length=100, score_highest_ratio=0.5, score_log_interval=900, stack_frames_in_gs=False, terminate_on_lives_lost=False, tes_extend=True, tes_extend_ratio=5.0, train_episode_steps=30, train_in_eval=False, use_gpu=True, use_gym=True, use_lstm=False, verbose=True)
+Namespace(action_size=18, average_score_log_interval=10, basic_income=0.0, basic_income_time=100000000000000000000, checkpoint_dir='checkpoints', color_averaging_in_ale=True, color_averaging_in_gs=False, color_maximizing_in_gs=False, display=False, end_mega_step=100, end_time_step=100000000, entropy_beta=0.01, frames_skip_in_ale=4, frames_skip_in_gs=1, gamma=0.99, grad_norm_clip=40.0, greediness=0.01, gym_env='MontezumaRevenge-v0', initial_alpha_high=0.01, initial_alpha_log_rate=0.4226, initial_alpha_low=0.0001, lives_lost_reward=0.0, lives_lost_rratio=0.0, lives_lost_weight=1.0, local_t_max=5, log_file='tmp/a3c_log', log_interval=800, max_mega_step=200, max_play_steps=4500, max_play_time=300, max_time_step=200000000, max_to_keep=None, no_reward_steps=9000, no_reward_time=600, num_episode_record=20, num_experiments=1, parallel_size=8, performance_log_interval=1500, psc_beta=0.01, psc_frsize=42, psc_maxval=127, psc_use=True, randomness=0.00022222222222222223, randomness_log_interval=150.0, randomness_log_num=30, randomness_steps=4500, randomness_time=300, record_gs_screen_dir=None, record_new_record_dir=None, record_screen_dir=None, repeat_action_probability=0.0, repeat_action_ratio=0.25, reset_max_reward=True, reward_clip=1.0, rmsp_alpha=0.99, rmsp_epsilon=0.1, rom='montezuma_revenge.bin', save_mega_interval=3, save_time_interval=3000000, score_averaging_length=100, score_highest_ratio=0.5, score_log_interval=900, stack_frames_in_gs=False, terminate_on_lives_lost=False, tes_extend=True, tes_extend_ratio=5.0, train_episode_steps=30, train_in_eval=False, use_gpu=True, use_gym=False, use_lstm=False, verbose=True)
 *************************************************
-[2016-10-06 09:13:33,905] Making new env: MontezumaRevenge-v0
-Discrete(18)
-[2016-10-06 09:13:34,270] Making new env: MontezumaRevenge-v0
-Discrete(18)
-[2016-10-06 09:13:34,647] Making new env: MontezumaRevenge-v0
-Discrete(18)
-[2016-10-06 09:13:35,081] Making new env: MontezumaRevenge-v0
-Discrete(18)
-[2016-10-06 09:13:35,462] Making new env: MontezumaRevenge-v0
-Discrete(18)
-[2016-10-06 09:13:35,935] Making new env: MontezumaRevenge-v0
-Discrete(18)
-[2016-10-06 09:13:36,307] Making new env: MontezumaRevenge-v0
-Discrete(18)
-[2016-10-06 09:13:36,684] Making new env: MontezumaRevenge-v0
-Discrete(18)
+A.L.E: Arcade Learning Environment (version 0.5.1)
+[Powered by Stella]
+Use -help for help screen.
+Warning: couldn't load settings file: ./ale.cfg
+Game console created:
+  ROM file:  montezuma_revenge.bin
+  Cart Name: Montezuma's Revenge - Starring Panama Joe (1983) (Parker Bros)
+  Cart MD5:  3347a6dd59049b15a38394aa2dafa585
+  Display Format:  AUTO-DETECT ==> NTSC
+  ROM Size:        8192
+  Bankswitch Type: AUTO-DETECT ==> E0
+
+Running ROM file...
+Random seed is 11992
+real_actions= [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17]
+[PSC]@@@ NEW ROOM(1) VISITED: visit counts=[0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+A.L.E: Arcade Learning Environment (version 0.5.1)
+[Powered by Stella]
+Use -help for help screen.
+Warning: couldn't load settings file: ./ale.cfg
+Game console created:
+  ROM file:  montezuma_revenge.bin
+  Cart Name: Montezuma's Revenge - Starring Panama Joe (1983) (Parker Bros)
+  Cart MD5:  3347a6dd59049b15a38394aa2dafa585
+  Display Format:  AUTO-DETECT ==> NTSC
+  ROM Size:        8192
+  Bankswitch Type: AUTO-DETECT ==> E0
+
+Running ROM file...
+Random seed is 8451
+real_actions= [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17]
+[PSC]@@@ NEW ROOM(1) VISITED: visit counts=[0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+A.L.E: Arcade Learning Environment (version 0.5.1)
+[Powered by Stella]
+Use -help for help screen.
+Warning: couldn't load settings file: ./ale.cfg
+Game console created:
+  ROM file:  montezuma_revenge.bin
+  Cart Name: Montezuma's Revenge - Starring Panama Joe (1983) (Parker Bros)
+  Cart MD5:  3347a6dd59049b15a38394aa2dafa585
+  Display Format:  AUTO-DETECT ==> NTSC
+  ROM Size:        8192
+  Bankswitch Type: AUTO-DETECT ==> E0
+
+Running ROM file...
+Random seed is 26968
+real_actions= [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17]
+[PSC]@@@ NEW ROOM(1) VISITED: visit counts=[0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+A.L.E: Arcade Learning Environment (version 0.5.1)
+[Powered by Stella]
+Use -help for help screen.
+Warning: couldn't load settings file: ./ale.cfg
+Game console created:
+  ROM file:  montezuma_revenge.bin
+  Cart Name: Montezuma's Revenge - Starring Panama Joe (1983) (Parker Bros)
+  Cart MD5:  3347a6dd59049b15a38394aa2dafa585
+  Display Format:  AUTO-DETECT ==> NTSC
+  ROM Size:        8192
+  Bankswitch Type: AUTO-DETECT ==> E0
+
+Running ROM file...
+Random seed is 56109
+real_actions= [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17]
+[PSC]@@@ NEW ROOM(1) VISITED: visit counts=[0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+A.L.E: Arcade Learning Environment (version 0.5.1)
+[Powered by Stella]
+Use -help for help screen.
+Warning: couldn't load settings file: ./ale.cfg
+Game console created:
+  ROM file:  montezuma_revenge.bin
+  Cart Name: Montezuma's Revenge - Starring Panama Joe (1983) (Parker Bros)
+  Cart MD5:  3347a6dd59049b15a38394aa2dafa585
+  Display Format:  AUTO-DETECT ==> NTSC
+  ROM Size:        8192
+  Bankswitch Type: AUTO-DETECT ==> E0
+
+Running ROM file...
+Random seed is 64235
+real_actions= [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17]
+[PSC]@@@ NEW ROOM(1) VISITED: visit counts=[0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+A.L.E: Arcade Learning Environment (version 0.5.1)
+[Powered by Stella]
+Use -help for help screen.
+Warning: couldn't load settings file: ./ale.cfg
+Game console created:
+  ROM file:  montezuma_revenge.bin
+  Cart Name: Montezuma's Revenge - Starring Panama Joe (1983) (Parker Bros)
+  Cart MD5:  3347a6dd59049b15a38394aa2dafa585
+  Display Format:  AUTO-DETECT ==> NTSC
+  ROM Size:        8192
+  Bankswitch Type: AUTO-DETECT ==> E0
+
+Running ROM file...
+Random seed is 36121
+real_actions= [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17]
+[PSC]@@@ NEW ROOM(1) VISITED: visit counts=[0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+A.L.E: Arcade Learning Environment (version 0.5.1)
+[Powered by Stella]
+Use -help for help screen.
+Warning: couldn't load settings file: ./ale.cfg
+Game console created:
+  ROM file:  montezuma_revenge.bin
+  Cart Name: Montezuma's Revenge - Starring Panama Joe (1983) (Parker Bros)
+  Cart MD5:  3347a6dd59049b15a38394aa2dafa585
+  Display Format:  AUTO-DETECT ==> NTSC
+  ROM Size:        8192
+  Bankswitch Type: AUTO-DETECT ==> E0
+
+Running ROM file...
+Random seed is 43977
+real_actions= [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17]
+[PSC]@@@ NEW ROOM(1) VISITED: visit counts=[0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+A.L.E: Arcade Learning Environment (version 0.5.1)
+[Powered by Stella]
+Use -help for help screen.
+Warning: couldn't load settings file: ./ale.cfg
+Game console created:
+  ROM file:  montezuma_revenge.bin
+  Cart Name: Montezuma's Revenge - Starring Panama Joe (1983) (Parker Bros)
+  Cart MD5:  3347a6dd59049b15a38394aa2dafa585
+  Display Format:  AUTO-DETECT ==> NTSC
+  ROM Size:        8192
+  Bankswitch Type: AUTO-DETECT ==> E0
+
+Running ROM file...
+Random seed is 23925
+real_actions= [ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17]
+[PSC]@@@ NEW ROOM(1) VISITED: visit counts=[0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
 WARNING:tensorflow:Passing a `GraphDef` to the SummaryWriter is deprecated. Pass a `Graph` object instead, such as `sess.graph`.
-[2016-10-06 09:13:39,106] Passing a `GraphDef` to the SummaryWriter is deprecated. Pass a `Graph` object instead, such as `sess.graph`.
 Could not find old checkpoint
 Press Ctrl+C to stop
-pi=[ 0.05761057  0.05387394  0.05851481  0.05629974  0.05450868  0.05659814
-  0.05277339  0.05642587  0.05649396  0.0577002   0.05393432  0.05837334
-  0.05222193  0.05399597  0.05160601  0.05686359  0.05703828  0.05516613] (thread0)
- V=-0.06294463574886322 (thread0)
-t=     3,s=      390,th=3:         |         |         |r=  0@END|
-t=     4,s=      785,th=1:         |r=  0@END|
-t=     4,s=      830,th=4:         |         |         |         |r=  0@END|
-t=     4,s=      815,th=6:         |         |         |         |         |         |r=  0@END|
-t=     4,s=      840,th=7:         |         |         |         |         |         |         |r=  0@END|
-t=     5,s=      925,th=5:         |         |         |         |         |r=  0@END|
-t=     6,s=     1368,th=6:         |         |         |         |         |         |r=  0@END|
-t=     7,s=     1504,th=2:         |         |r=  0@END|
-t=     7,s=     1606,th=1:         |r=  0@END|
-t=     8,s=     1774,th=5:         |         |         |         |         |r=  0@END|
-t=     8,s=     1815,th=7:         |         |         |         |         |         |         |r=  0@END|
-t=     8,s=     1840,th=4:         |         |         |         |r=  0@END|
-t=     8,s=     1872,th=3:         |         |         |r=  0@END|
+pi=[ 0.05826766  0.05253733  0.05701661  0.05929542  0.05561724  0.05342633
+  0.05822033  0.05593918  0.05202595  0.05531708  0.05589596  0.05275061
+  0.05566065  0.05645977  0.05435816  0.05512977  0.05570021  0.05638067] (thread0)
+ V=0.0823536217212677 (thread0)
+t=     1,s=       90,th=4:         |         |         |         |l=6>5    |
+t=     1,s=      105,th=7:         |         |         |         |         |         |         |l=6>5    |
+t=     1,s=      110,th=1:         |l=6>5    |
+t=     2,s=      265,th=2:         |         |l=6>5    |
+t=     2,s=      230,th=6:         |         |         |         |         |         |l=6>5    |
+t=     2,s=      255,th=0:l=6>5    |
+t=     2,s=      320,th=1:         |l=5>4    |
+t=     2,s=      390,th=7:         |         |         |         |         |         |         |l=5>4    |
+t=     2,s=      470,th=2:         |         |l=5>4    |
+t=     3,s=      535,th=6:         |         |         |         |         |         |l=5>4    |
+t=     3,s=      605,th=7:         |         |         |         |         |         |         |l=4>3    |
+t=     3,s=      620,th=0:l=5>4    |
+t=     3,s=      730,th=1:         |l=4>3    |
+t=     3,s=      800,th=7:         |         |         |         |         |         |         |l=3>2    |
+t=     3,s=      820,th=3:         |         |         |l=6>5    |
+t=     4,s=      880,th=0:l=4>3    |
+t=     4,s=      895,th=6:         |         |         |         |         |         |l=4>3    |
+t=     4,s=      975,th=2:         |         |l=4>3    |
+t=     4,s=     1195,th=2:         |         |l=3>2    |
+t=     4,s=     1220,th=4:         |         |         |         |l=5>4    |
+t=     4,s=     1245,th=7:         |         |         |         |         |         |         |l=2>1    |
+t=     5,s=     1335,th=1:         |l=3>2    |
+t=     5,s=     1395,th=4:         |         |         |         |l=4>3    |
+t=     5,s=     1580,th=6:         |         |         |         |         |         |l=3>2    |
+t=     5,s=     1610,th=4:         |         |         |         |l=3>2    |
+t=     5,s=     1650,th=7:         |         |         |         |         |         |         |l=1>0    |
+t=     5,s=     1650,th=7:         |         |         |         |         |         |         |r=  0@END|
+t=     6,s=     1766,th=7:         |         |         |         |         |         |         |l=6>5    |
+t=     6,s=     1951,th=6:         |         |         |         |         |         |l=2>1    |
+t=     7,s=     2161,th=7:         |         |         |         |         |         |         |l=5>4    |
+t=     7,s=     2296,th=0:l=3>2    |
+t=     8,s=     2391,th=5:         |         |         |         |         |l=6>5    |
+t=     8,s=     2466,th=7:         |         |         |         |         |         |         |l=4>3    |
+t=     8,s=     2506,th=4:         |         |         |         |l=2>1    |
+t=     9,s=     2831,th=2:         |         |l=2>1    |
+t=     9,s=     2826,th=3:         |         |         |l=5>4    |
+t=     9,s=     2931,th=7:         |         |         |         |         |         |         |l=3>2    |
 ^CYou pressed Ctrl+C!
-@@@ Data saved at global_t=2096
-itsukara@azvm30:~/Download/async_deep_reinforce$ 
-
-
+@@@ Data saved at global_t=3101
+itsukara@azvm30:~/async_deep_reinforce$
 ======================================================================================
 ======================================================================================
