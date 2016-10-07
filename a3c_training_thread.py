@@ -211,7 +211,7 @@ class A3CTrainingThread(object):
       self.episode_reward += reward
       if reward > 0 and self.options.rom == "montezuma_revenge.bin":
         elapsed_time = time.time() - self.start_time
-        print("t={:6.0f},s={:9d},th={}:{}r={:3.0f}RM{:02d}| NEW-SCORE".format(
+        print("t={:6.0f},s={:4.0f},th={}:{}r={:3.0f}RM{:02d}| NEW-SCORE".format(
               elapsed_time, global_t, self.thread_index, self.indent, self.episode_reward,
               self.game_state.room_no))
 
@@ -347,7 +347,7 @@ class A3CTrainingThread(object):
               if self.game_state.lives == self.initial_lives:
                 tes *= 2
               tes = int(tes)
-            print("[OHL]SCORE={:9d},s={:9d},th={},lives={},steps={},tes={},RM{:02d}".format(self.episode_reward,  global_t, self.thread_index, self.game_state.lives, self.steps, tes, self.game_state.room_no))
+            print("[OHL]SCORE={:3.0f},s={:9d},th={},lives={},steps={},tes={},RM{:02d}".format(self.episode_reward,  global_t, self.thread_index, self.game_state.lives, self.steps, tes, self.game_state.room_no))
             states = self.episode_states[-tes:]
             actions = self.episode_actions[-tes:]
             rewards = self.episode_rewards[-tes:]
