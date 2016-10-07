@@ -50,7 +50,7 @@ This code needs Anaconda, tensorflow, opencv3 and Arcade Learning Environment (A
     $ bash -x install-additionals.sh
     $ cd ../async_deep_reinforce
     $ mv checkpoints checkpoints.old
-    $ ./run-option-gym montezuma-c-max-greedy-rar025
+    $ ./run-option montezuma-c-max-greedy-rar025
 
 When program requests input, just hit Enter or input "y" or "yes" and hit Enter. But as for Anaconda, you have to input "q" when License and "--More--" is displayed.
 
