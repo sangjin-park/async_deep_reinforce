@@ -22,9 +22,9 @@ The following graph is the average score of Montezuma's Revenge.
 
 ## Best Learning curve of Monezuma's Revenge
 
-The following graph is the best Learning Curve of Montezuma's Revenge (2016/9/16). Best score is 2500 and peak average score is more than 1500 point. 
+The following graph is the best Learning Curve of Montezuma's Revenge (2016/10/7). Best score is 2500 and peak average score is more than 1500 point. 
  
-![best learning result](https://cdn-ak.f.st-hatena.com/images/fotolife/I/Itsukara/20160916/20160916141555.png)
+![best learning result](https://cdn-ak.f.st-hatena.com/images/fotolife/I/Itsukara/20161007/20161007134815.png)
 
 ## Play movie
 
