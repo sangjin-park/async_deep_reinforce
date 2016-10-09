@@ -115,9 +115,12 @@ class A3CTrainingThread(object):
     self.initial_lives = self.game_state.initial_lives
     self.max_history = int(self.options.train_episode_steps * self.options.tes_extend_ratio * 2.1)
 
-    if (self.thread_index == 0) and (self.options.record_new_record_dir is not None):
-      if not os.path.exists(self.options.record_new_record_dir):
-        os.makedirs(self.options.record_new_record_dir)
+    if self.options.record_new_record_dir is not None:
+      if self.thread_index == 0:
+        if not os.path.exists(self.options.record_new_record_dir):
+          os.makedirs(self.options.record_new_record_dir)
+      self.episode_screens = []
+
 
     self.greediness = options.greediness
     self.repeat_action_ratio = options.repeat_action_ratio
@@ -245,6 +248,10 @@ class A3CTrainingThread(object):
 
       self.local_t += 1
 
+      if self.options.record_new_record_dir is not None:
+        screen = np.array(self.game_state.s_t)[:,:,3]
+        self.episode_screens.append(screen)
+
       # terminate if the play time is too long
       self.steps += 1
       if self.steps > self.options.max_play_steps:
@@ -300,10 +307,9 @@ class A3CTrainingThread(object):
               dirname = "s{:09d}-th{}-r{:03.0f}".format(global_t,  self.thread_index, self.episode_reward)
               dirname = os.path.join(self.options.record_new_record_dir, dirname)
               os.makedirs(dirname)
-              for index, state in enumerate(self.episode_states):
+              for index, screen in enumerate(self.episode_screens):
                 filename = "{:06d}.png".format(index)
                 filename = os.path.join(dirname, filename)
-                screen = np.array(state)[:,:,3]
                 screen_image = screen.reshape((84, 84)) * 255.
                 cv2.imwrite(filename, screen_image)
               print("@@@ New Record screens saved to {}".format(dirname))
@@ -317,6 +323,8 @@ class A3CTrainingThread(object):
           self.episode_values = []
           self.episode_liveses = []
           self.episode_scores.add(self.episode_reward, global_t, self.thread_index)
+          if self.options.record_new_record_dir is not None:
+            self.episode_screens= []
 
         self.episode_reward = 0
         self.steps = 0
