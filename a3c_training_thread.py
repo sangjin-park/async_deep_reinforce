@@ -244,7 +244,12 @@ class A3CTrainingThread(object):
           self.episode_rewards = self.episode_rewards[-self.max_history:]
           self.episode_values = self.episode_values[-self.max_history:]
           self.episode_liveses = self.episode_liveses[-self.max_history-1:]
-
+        if self.options.clear_history_on_death and (liveses[-2] > liveses[-1]):
+          self.episode_states = []
+          self.episode_actions = []
+          self.episode_rewards = []
+          self.episode_values = []
+          self.episode_liveses = self.episode_liveses[-2:]
 
       self.local_t += 1
 
@@ -355,12 +360,19 @@ class A3CTrainingThread(object):
               if self.game_state.lives == self.initial_lives:
                 tes *= 2
               tes = int(tes)
+            tes = min(tes, len(self.episode_states))
             print("[OHL]SCORE={:3.0f},s={:9d},th={},lives={},steps={},tes={},RM{:02d}".format(self.episode_reward,  global_t, self.thread_index, self.game_state.lives, self.steps, tes, self.game_state.room_no))
             states = self.episode_states[-tes:]
             actions = self.episode_actions[-tes:]
             rewards = self.episode_rewards[-tes:]
             values = self.episode_values[-tes:]
             liveses = self.episode_liveses[-tes-1:]
+            if self.options.clear_history_after_ohl:
+              self.episode_states = []
+              self.episode_actions = []
+              self.episode_rewards = []
+              self.episode_values = []
+              self.episode_liveses = self.episode_liveses[-2:]
 
       R = 0.0
       if not terminal_end:

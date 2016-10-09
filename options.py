@@ -64,6 +64,8 @@ SCORE_AVERAGING_LENGTH = 100 # Episode score averaging length
 SCORE_HIGHEST_RATIO = 0.5 # Threshold of highest ratio to be highscore 
 TES_EXTEND = False # Extend train-episode-steps based of remaining lives 
 TES_EXTEND_RATIO = 5.0 # Multiply this value to train-episode-steps when full lives 
+CLEAR_HISTORY_ON_DEATH = True # Clear history data on death
+CLEAR_HISTORY_AFTER_OHL = True # Clear history data after OHL
 
 LOG_INTERVAL = 900 # Log output interval (steps)
 SCORE_LOG_INTERVAL = 900 # Score log output interval (steps)
@@ -166,6 +168,8 @@ parser.add_argument('--score-averaging-length', type=int, default=SCORE_AVERAGIN
 parser.add_argument('--score-highest-ratio', type=float, default=SCORE_HIGHEST_RATIO)
 parser.add_argument('--tes-extend', type=str, default=str(TES_EXTEND))
 parser.add_argument('--tes-extend-ratio', type=float, default=TES_EXTEND_RATIO)
+parser.add_argument('--clear-history-on-death', type=str, default=str(CLEAR_HISTORY_ON_DEATH))
+parser.add_argument('--clear-history-after-ohl', type=str, default=str(CLEAR_HISTORY_AFTER_OHL))
 
 parser.add_argument('--log-interval', type=int, default=LOG_INTERVAL)
 parser.add_argument('--score-log-interval', type=int, default=SCORE_LOG_INTERVAL)
@@ -195,6 +199,8 @@ convert_boolean_arg(args, "color_averaging_in_gs")
 convert_boolean_arg(args, "stack_frames_in_gs")
 convert_boolean_arg(args, "reset_max_reward")
 convert_boolean_arg(args, "tes_extend")
+convert_boolean_arg(args, "clear_history_on_death")
+convert_boolean_arg(args, "clear_history_after_ohl")
 convert_boolean_arg(args, "display")
 convert_boolean_arg(args, "verbose")
 
