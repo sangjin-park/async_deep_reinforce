@@ -221,6 +221,12 @@ if args.use_gym:
   if args.stack_frames_in_gs:
     print("Can not specify stack-frames-in-gs because OpenAI Gym skips 2 - 4 frames randomly")
     sys.exit(1)
+  # Requirement for OpenAI Gym
+  args.terminate_on_lives_lost = False
+  args.tes_extend = False
+  args.tes_extend_ratio = 1.0
+  args.clear_history_on_death = False
+  args.clear_history_after_ohl = False
 
 num_color_options = 0
 if args.color_averaging_in_ale:
@@ -258,7 +264,6 @@ elif args.color_no_change_in_gs:
 else:
   print("Internal Error in option.py")
   sys.exit(1)
-
 
 if args.max_time_step is None:
   args.max_time_step = args.max_mega_step * 10**6

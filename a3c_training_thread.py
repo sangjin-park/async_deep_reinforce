@@ -121,7 +121,6 @@ class A3CTrainingThread(object):
           os.makedirs(self.options.record_new_record_dir)
       self.episode_screens = []
 
-
     self.greediness = options.greediness
     self.repeat_action_ratio = options.repeat_action_ratio
     self.prev_action = 0
@@ -244,13 +243,14 @@ class A3CTrainingThread(object):
           self.episode_rewards = self.episode_rewards[-self.max_history:]
           self.episode_values = self.episode_values[-self.max_history:]
           self.episode_liveses = self.episode_liveses[-self.max_history-1:]
+        # requirement for OpenAI Gym: --clear-history-on-death=False
         if self.options.clear_history_on_death and (liveses[-2] > liveses[-1]):
           self.episode_states = []
           self.episode_actions = []
           self.episode_rewards = []
           self.episode_values = []
           self.episode_liveses = self.episode_liveses[-2:]
-
+ 
       self.local_t += 1
 
       if self.options.record_new_record_dir is not None:
@@ -262,6 +262,7 @@ class A3CTrainingThread(object):
       if self.steps > self.options.max_play_steps:
         terminal = True
 
+      # requirement for OpenAI Gym: --terminate-on-lives-lost=False
       # terminate if lives lost
       if self.terminate_on_lives_lost and (liveses[-2] > liveses[-1]):
         terminal = True
@@ -346,6 +347,7 @@ class A3CTrainingThread(object):
             global_t,  elapsed_time, steps_per_sec, steps_per_sec * 3600 / 1000000.))
 
     # don't train if following condition
+    # requirement for OpenAI Gym: --terminate-on-lives-lost=False
     if self.options.terminate_on_lives_lost and (self.thread_index == 0) and (not self.options.train_in_eval):
       return 0
     else:
@@ -355,6 +357,7 @@ class A3CTrainingThread(object):
           _ = self.episode_scores.is_highscore(self.episode_reward)
           if True:
             tes = self.options.train_episode_steps
+            # requirement for OpenAI Gym: --test-extend=False
             if self.options.tes_extend and self.initial_lives != 0:
               tes *= self.options.tes_extend_ratio * (self.game_state.lives / self.initial_lives)
               if self.game_state.lives == self.initial_lives:
@@ -367,12 +370,14 @@ class A3CTrainingThread(object):
             rewards = self.episode_rewards[-tes:]
             values = self.episode_values[-tes:]
             liveses = self.episode_liveses[-tes-1:]
+            # requirement for OpenAI Gym: --clear-history-after-ohl=False
             if self.options.clear_history_after_ohl:
               self.episode_states = []
               self.episode_actions = []
               self.episode_rewards = []
               self.episode_values = []
               self.episode_liveses = self.episode_liveses[-2:]
+
 
       R = 0.0
       if not terminal_end:
@@ -392,7 +397,7 @@ class A3CTrainingThread(object):
       # compute and accmulate gradients
       for(ai, ri, si, Vi) in zip(actions, rewards, states, values):
         # Consider the number of lives
-        if self.initial_lives != 0.0 and not self.terminate_on_lives_lost:
+        if (not self.options.use_gym) and self.initial_lives != 0.0 and not self.terminate_on_lives_lost:
           prev_lives = liveses.pop()
           if prev_lives > lives:
             weight = self.options.lives_lost_weight
