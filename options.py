@@ -41,6 +41,7 @@ BASIC_INCOME_TIME  = 10 ** 20 # Basic income time for reward 1.0 in seconds (hug
 
 PSC_USE = False # use pseudo-count
 PSC_BETA = 0.01 # Beta in pseudo-count
+PSC_POW = 2 # Power factor in pseudo-count
 PSC_FRSIZE = 42 # frame size in pseudo-count
 PSC_MAXVAL = 127 # max value of pixels in pseudo-count 
 REPEAT_ACTION_PROBABILITY = 0.0 # stochasticity option for ALE
@@ -142,6 +143,7 @@ parser.add_argument('--basic-income', type=float, default=None)
 
 parser.add_argument('--psc-use', type=str, default=str(PSC_USE))
 parser.add_argument('--psc-beta', type=float, default=PSC_BETA)
+parser.add_argument('--psc-pow', type=float, default=PSC_POW)
 parser.add_argument('--psc-frsize', type=int, default=PSC_FRSIZE)
 parser.add_argument('--psc-maxval', type=int, default=PSC_MAXVAL)
 parser.add_argument('--repeat-action-probability', type=float, default=REPEAT_ACTION_PROBABILITY)

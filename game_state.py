@@ -3,7 +3,7 @@ import sys
 import numpy as np
 import cv2
 import os
-from math import sqrt
+import math
 
 import options
 options = options.options
@@ -67,6 +67,8 @@ class GameState(object):
     if options.psc_use:
       self.psc_frsize = options.psc_frsize
       self.psc_k = options.psc_frsize ** 2
+      self.psc_rev_pow = 1.0 / options.psc_pow
+      self.psc_alpha = math.pow(0.1, options.psc_pow)
       self.psc_beta = options.psc_beta
       self.psc_maxval = options.psc_maxval
       self.psc_vcount = np.zeros((self.psc_k, self.psc_maxval + 1), dtype=np.float64)
@@ -82,6 +84,9 @@ class GameState(object):
  
   # for pseudo-count
   def psc_add_image(self, psc_image):
+    if psc_image.dtype != np.dtype('uint8'):
+      print("Internal ERROR in dtype")
+      sys.exit(1)
     k = self.psc_k
     n = self.psc_n
     if n > 0:
@@ -89,8 +94,8 @@ class GameState(object):
       vcount = self.psc_vcount[range(k), psc_image]
       self.psc_vcount[range(k), psc_image] += 1.0
       r_over_rp = np.prod(nr * vcount / (1.0 + vcount))
-      psc_count = r_over_rp / (1.0 - r_over_rp)
-      psc_reward = self.psc_beta / sqrt(psc_count + 0.01)
+      psc_count = r_over_rp / (1.0 - r_over_rp + 1.0e-37)
+      psc_reward = self.psc_beta / math.pow(psc_count + self.psc_alpha, self.psc_rev_pow)
     else:
       self.psc_vcount[range(k), psc_image] += 1.0
       psc_reward = 0.0
