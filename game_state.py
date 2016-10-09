@@ -161,8 +161,6 @@ class GameState(object):
   def _process_action(self, action):
     if options.use_gym:
       observation, reward, terminal, _ = self.gym.step(action)
-      self._prev_screen_RGB = observation
-      self._have_prev_screen_RGB = True
       return reward, terminal
     else:
       reward = self.ale.act(action)
@@ -244,7 +242,7 @@ class GameState(object):
 
     # update covered rooms
     if self.options.rom == "montezuma_revenge.bin" or self.options.gym_env == "MontezumaRevenge-v0":
-        self.update_montezuma_rooms()
+      self.update_montezuma_rooms()
     
     return psc_reward
     
