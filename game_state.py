@@ -9,6 +9,8 @@ import options
 options = options.options
 if options.use_gym:
   import gym
+  from gym.envs.atari.atari_env import AtariEnv
+  from atari_py import ALEInterface
 else:
   from ale_python_interface import ALEInterface
 
@@ -39,7 +41,23 @@ class GameState(object):
     self.room_no = 1
 
     if options.use_gym:
+      # see https://github.com/openai/gym/issues/349
+      def _seed(self, seed=None):
+        self.ale.setFloat(b'repeat_action_probability', options.repeat_action_probability)
+        from gym.utils import seeding
+        self.np_random, seed1 = seeding.np_random(seed)
+        # Derive a random seed. This gets passed as a uint, but gets
+        # checked as an int elsewhere, so we need to keep it below
+        # 2**31.
+        seed2 = seeding.hash_seed(seed1 + 1) % 2 ** 31
+        # Empirically, we need to seed before loading the ROM.
+        self.ale.setInt(b'random_seed', seed2)
+        self.ale.loadROM(self.game_path)
+        return [seed1, seed2]
+      
+      AtariEnv._seed = _seed
       self.gym = gym.make(options.gym_env)
+      self.ale = self.gym.ale
       print(self.gym.action_space)
     else:
       if display:
@@ -105,25 +123,23 @@ class GameState(object):
 
     if self.psc_n % (self.options.score_log_interval * 10) == 0:
       room = -1
-      if not options.use_gym:
-        if self.options.rom == "montezuma_revenge.bin":
-          ram = self.ale.getRAM()
-          room = ram[3]
+      if self.options.rom == "montezuma_revenge.bin" or self.options.gym_env == "MontezumaRevenge-v0":
+        ram = self.ale.getRAM()
+        room = ram[3]
       print("[PSC]th={},psc_n={}:room={},psc_reward={:.8f},RM{:02d}".format(self.thread_index, self.psc_n, room, psc_reward, self.room_no))
 
     return psc_reward   
 
   # for montezuma's revenge
   def update_montezuma_rooms(self):
-    if not options.use_gym:
-      ram = self.ale.getRAM()
-      # room_no = ram[0x83]
-      room_no = ram[3]
-      self.rooms[room_no] += 1
-      if self.rooms[room_no] == 1:
-        print("[PSC]@@@ NEW ROOM({}) VISITED: visit counts={}".format(room_no, self.rooms))
-      self.prev_room_no = self.room_no
-      self.room_no = room_no
+    ram = self.ale.getRAM()
+    # room_no = ram[0x83]
+    room_no = ram[3]
+    self.rooms[room_no] += 1
+    if self.rooms[room_no] == 1:
+      print("[PSC]@@@ NEW ROOM({}) VISITED: visit counts={}".format(room_no, self.rooms))
+    self.prev_room_no = self.room_no
+    self.room_no = room_no
 
   def set_record_screen_dir(self, record_screen_dir):
     if options.use_gym:
@@ -227,8 +243,7 @@ class GameState(object):
       psc_reward = self.psc_add_image(psc_image)
 
     # update covered rooms
-    if not options.use_gym:
-      if self.options.rom == "montezuma_revenge.bin":
+    if self.options.rom == "montezuma_revenge.bin" or self.options.gym_env == "MontezumaRevenge-v0":
         self.update_montezuma_rooms()
     
     return psc_reward
@@ -251,6 +266,8 @@ class GameState(object):
     # randomize initial state
     if self._no_op_max > 0:
       no_op = np.random.randint(0, self._no_op_max // self.options.frames_skip_in_ale + 1)
+      if options.use_gym:
+        no_op = no_op // 3 # gym skip 2 - 4 frame randomly
       for _ in range(no_op):
         if options.use_gym:
           self.gym.step(0)
@@ -265,10 +282,7 @@ class GameState(object):
     self.reward = 0
     self.s_t = np.stack((x_t, x_t, x_t, x_t), axis = 2)
 
-    if self.options.use_gym:
-      self.lives = 0.0
-    else:
-      self.lives = float(self.ale.lives())
+    self.lives = float(self.ale.lives())
     self.initial_lives = self.lives
 
     if (self.thread_index == 0) and (self.record_gs_screen_dir is not None):
@@ -322,10 +336,7 @@ class GameState(object):
     self.terminal = t
 
     self.psc_reward = self.pseudo_count(x_t_uint8)
-    if self.options.use_gym:
-      self.lives = 0.0
-    else:
-      self.lives = float(self.ale.lives())
+    self.lives = float(self.ale.lives())
 
     if self.episode_record_dir is not None:
       filename = "{:06d}.png".format(self.stepNo)
