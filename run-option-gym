@@ -1,35 +1,85 @@
 #!/bin/bash
 
-if [ $# -ne 1 ]; then
-    echo "Usage: $0 runset-name"
+if [ $# -eq 1 ]; then
+    program="a3c.py"
+    #add_option="--record-gs-screen-dir=gs-screen"
+    #add_option="--record-new-record-dir=nr-screen"
+    add_option=""
+elif [ $# -eq 2 ]; then
+    program="a3c_display.py"
+    add_option="--display=False --record-screen-dir=screen"
+else
+    echo "Usage: $0 rom-option-set-name"
     exit 1
 fi
 
 program="a3c.py"
 comment=""
 case $1 in
-  "montezuma-c-max-greedy-rar025-stackf-lstm")
-    comment="cmax, tes=90, greediness=0.01, rar=0.25 stakf lstm"
+  "montezuma-g-tes90-b002-ff-fs2")
+    comment="tes=90, psc_beta=0.02, frame-skip=2, greediness=0.01, rar=0.25"
     gym_env="MontezumaRevenge-v0"
-    option="--use-gym=True --train-episode-steps=90 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=800 --color-maximizing-in-gs=True --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25 --stack-frames-in-gs=True --use-lstm=True"
+    option="--use-gym=True --train-episode-steps=90 --psc-beta=0.02 --frames-skip-in-gs=2 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=800 --score-log-interval=100 --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
     ;;
     
-  "montezuma-c-max-greedy-rar025")
-    comment="cmax tes=90, greediness=0.01, rar=0.25"
+  "montezuma-g-tes150-b002-ff-fs2")
+    comment="tes=150, psc_beta=0.02, frame-skip=2, greediness=0.01, rar=0.25"
     gym_env="MontezumaRevenge-v0"
-    option="--use-gym=True --train-episode-steps=90 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=100 --log-interval=800 --color-maximizing-in-gs=True --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
-    ;;
-
-  "montezuma-c-avg-greedy-rar025")
-    comment="cavg, tes=90, greediness=0.01, rar=0.25"
-    gym_env="MontezumaRevenge-v0"
-    option="--use-gym=True --train-episode-steps=90 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=100 --log-interval=800 --color-averaging-in-gs=True --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
+    option="--use-gym=True --train-episode-steps=150 --psc-beta=0.02 --frames-skip-in-gs=2 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=800 --score-log-interval=100 --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
     ;;
     
-  "montezuma-c-avg-greedy-rar025-3M")
-    comment="cavg, tes=90, greediness=0.01, rar=0.25"
+  "montezuma-g-tes150-b002-xpsc-ff-fs2")
+    comment="tes=150, psc_beta=0.02, psc-pow=3, frame-skip=2, greediness=0.01, rar=0.25"
     gym_env="MontezumaRevenge-v0"
-    option="--use-gym=True --train-episode-steps=90 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=3 --log-interval=800 --color-averaging-in-gs=True --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
+    option="--use-gym=True --train-episode-steps=150 --psc-beta=0.02 --psc-pow=3 --frames-skip-in-gs=2 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=800 --score-log-interval=100 --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
+    ;;
+    
+  "montezuma-g-tes150-b002-xpsc-lstm")
+    comment="tes=150, psc_beta=0.02, psc-pow=3, greediness=0.01, rar=0.25 lstm" 
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=150 --psc-beta=0.02 --psc-pow=3 --use-lstm=True  --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=800 --score-log-interval=100 --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
+    ;;
+    
+  "montezuma-g-tes150-b002-xpsc-ff")
+    comment="tes=150, psc_beta=0.02, psc-pow=3, greediness=0.01, rar=0.25"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=150 --psc-beta=0.02 --psc-pow=3 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=800 --score-log-interval=100 --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
+    ;;
+    
+  "montezuma-g-tes150-b002-lstm")
+    comment="tes=150, psc_beta=0.02, greediness=0.01, rar=0.25 lstm"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=150 --psc-beta=0.02 --use-lstm=False --terminate-on-lives-lost=True  --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=800 --score-log-interval=100 --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
+    ;;
+    
+  "montezuma-g-tes150-b002-ff")
+    comment="tes=150, psc_beta=0.02, greediness=0.01, rar=0.25"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=150 --psc-beta=0.02 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=800 --score-log-interval=100 --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
+    ;;
+    
+  "montezuma-g-tes90-b002-lstm")
+    comment="tes=90, psc_beta=0.02, greediness=0.01, rar=0.25 lstm"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=90  --psc-beta=0.02 --use-lstm=True  --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=800 --score-log-interval=100 --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
+    ;;
+    
+  "montezuma-g-tes90-b002-ff")
+    comment="tes=90, psc_beta=0.02, greediness=0.01, rar=0.25"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=90  --psc-beta=0.02 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=800 --score-log-interval=100 --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
+    ;;
+    
+  "montezuma-g-tes90-b001-lstm")
+    comment="tes=90, psc_beta=0.01, greediness=0.01, rar=0.25 lstm"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=90  --psc-beta=0.01 --use-lstm=True  --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=800 --score-log-interval=100 --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
+    ;;
+    
+  "montezuma-g-tes90-b001-ff")
+    comment="tes=90, psc_beta=0.01, greediness=0.01, rar=0.25"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=90  --psc-beta=0.01 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=800 --score-log-interval=100 --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25"
     ;;
     
   *)
@@ -38,12 +88,14 @@ case $1 in
     ;;
 esac
 
+option="$option $add_option"
 echo "runset=$1"
+echo "program=$program"
 echo "comment=$comment"
 echo "gym_env=$gym_env"
 echo "option=$option"
 
 . activate tensorflow
-python $program --use-gym=True --gym-env $gym_env $option 
+python $program --gym-env $gym_env $option 
 
 
