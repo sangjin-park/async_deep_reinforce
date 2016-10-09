@@ -27,6 +27,8 @@ parser.add_argument('-e', '--endmark', default="END",
                     help="End Mark of in reward line")
 parser.add_argument('--save', action='store_true',
                     help="save graph to file 'filename.png' and don't display it")
+parser.add_argument('-i', '--info', choices=["r", "tes", "v", "pr"], default="r",
+                    help="information in y-axis : r (reward), tes, v, pr (psc-reward)")
 
 def read_data(f):
   data = []
@@ -55,7 +57,12 @@ def draw_graph(ax, data):
   x = data[:, args.x_column]
   y = data[:, args.y_column]
   y_max = np.max(y)
-  ax.set_ylim(ymax = y_max * 1.05)
+  y_min = np.min(y)
+  y_width = y_max - y_min
+  if y_width == 0:
+    y_width = 1.0
+  ax.set_ylim(ymax = y_max + y_width * 0.05)
+  ax.set_ylim(ymin = y_min - y_width * 0.05)
 
   x = x / args.scale
   ax.plot(x, y, ',')
@@ -73,8 +80,20 @@ def draw_graph(ax, data):
   ax.grid(linewidth=1, linestyle="-", alpha=0.1)
 
 args = parser.parse_args()
+
+if args.info == "r":
+  pattern = 't=\s*(\d+),s=\s*(\d+).*r=\s*(\d+)@' + args.endmark
+elif args.info == "tes":
+  pattern = '.*SCORE=\s*(\d+),s=\s*(\d+).*tes=\s*(\d+)'
+elif args.info == "v":
+  pattern = 't=\s*(\d+),s=\s*(\d+).*v=(\d+\.\d+)'
+elif args.info == "pr":
+  pattern = 't=\s*(\d+),s=\s*(\d+).*pr=(\d+\.\d+)'
+else:
+  pass
+
 if args.title is None:
-  args.title = args.filename
+  args.title = args.filename + "." + args.info
 
 # trick for headless environment 
 if args.save:
@@ -83,18 +102,18 @@ if args.save:
 import matplotlib.pyplot as plt
 
 f = open(args.filename, "r")
-prog = re.compile('t=\s*(\d+),s=\s*(\d+).*r=\s*(\d+)@' + args.endmark)
+prog = re.compile(pattern)
 
 data = []
 fig = plt.figure(args.title)
 ax = fig.add_subplot(111)
-ax.set_title(args.title)
 while True:
   new_data = read_data(f)
   print(len(new_data), "data added.")
   if (len(new_data) > 0):
       data.extend(new_data)
-      # ax.clear()
+      ax.clear()
+      ax.set_title(args.title)
       draw_graph(ax, data)
   if args.save:
     savefilename = args.title + ".png"
