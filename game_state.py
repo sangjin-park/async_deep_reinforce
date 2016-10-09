@@ -199,9 +199,11 @@ class GameState(object):
     reshaped_screen = np.reshape(self._screen, (210, 160))
     
     # resize to height=110, width=84
-    resized_screen = cv2.resize(reshaped_screen, (84, 110))
-    
-    x_t = resized_screen[18:102,:]
+    if self.options.crop_frame:
+      resized_screen = cv2.resize(reshaped_screen, (84, 110))
+      x_t = resized_screen[18:102,:]
+    else:
+      x_t = cv2.resize(reshaped_screen, (84, 84))
     x_t_uint8 = x_t
     
     if reshape:
