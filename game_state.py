@@ -28,6 +28,7 @@ class GameState(object):
     self.options = options
     self.color_maximizing = options.color_maximizing_in_gs
     self.color_averaging  = options.color_averaging_in_gs
+    self.color_no_change  = options.color_no_change_in_gs
     # for screen output in _process_frame()
     self.thread_index = thread_index
     self.record_gs_screen_dir = self.options.record_gs_screen_dir
@@ -57,7 +58,7 @@ class GameState(object):
 
     # height=210, width=160
     self._screen = np.empty((210 * 160 * 1), dtype=np.uint8)
-    if self.color_maximizing or self.color_averaging:
+    if (not options.use_gym) and (self.color_maximizing or self.color_averaging or self.color_no_change):
       self._screen_RGB = np.empty((210 * 160 * 3), dtype=np.uint8)
       self._prev_screen_RGB = np.empty((210 *  160 * 3), dtype=np.uint8)
     self._have_prev_screen_RGB = False
@@ -175,9 +176,8 @@ class GameState(object):
       self.terminal = terminal
 
     # screen shape is (210, 160, 1)
-    if self.color_maximizing or self.color_averaging:
-      if not options.use_gym:
-        self.ale.getScreenRGB(self._screen_RGB)
+    if self.color_maximizing or self.color_averaging: # impossible in gym
+      self.ale.getScreenRGB(self._screen_RGB)
       if self._have_prev_screen_RGB:
         if self.color_maximizing:
           screen = np.maximum(self._prev_screen_RGB, self._screen_RGB)
@@ -192,6 +192,12 @@ class GameState(object):
       self._prev_screen_RGB = self._screen_RGB
       self._screen_RGB = swap_screen_RGB
       self._have_prev_screen_RGB = True
+    elif self.color_no_change:
+      if not options.use_gym:
+        self.ale.getScreenRGB(self._screen_RGB)
+      screen = self._screen_RGB
+      screen = screen.reshape((210, 160, 3))
+      self._screen = cv2.cvtColor(screen, cv2.COLOR_RGB2GRAY)
     else:
       self.ale.getScreenGrayscale(self._screen)
     

@@ -56,6 +56,7 @@ REPEAT_ACTION_RATIO = 0.0 # Repeat previous action ratio
 COLOR_AVERAGING_IN_ALE = True # Color averagin in ALE
 COLOR_MAXIMIZING_IN_GS = False # Color maximizing in GS
 COLOR_AVERAGING_IN_GS = False # Color averaging in GS
+COLOR_NO_CHANGE_IN_GS = False # Color no change in GS
 STACK_FRAMES_IN_GS = False # Stack frames in gs (not skip them)
 CROP_FRAME = True # Crop frame
 
@@ -162,6 +163,7 @@ parser.add_argument('--color-averaging-in-ale', type=str, default=str(COLOR_AVER
 parser.add_argument('--frames-skip-in-ale', type=int, default=None)
 parser.add_argument('--color-maximizing-in-gs', type=str, default=str(COLOR_MAXIMIZING_IN_GS))
 parser.add_argument('--color-averaging-in-gs', type=str, default=str(COLOR_AVERAGING_IN_GS))
+parser.add_argument('--color-no-change-in-gs', type=str, default=str(COLOR_NO_CHANGE_IN_GS))
 parser.add_argument('--frames-skip-in-gs', type=int, default=None)
 parser.add_argument('--stack-frames-in-gs', type=str, default=str(STACK_FRAMES_IN_GS))
 parser.add_argument('--crop-frame', type=str, default=str(CROP_FRAME))
@@ -200,6 +202,7 @@ convert_boolean_arg(args, "psc_use")
 convert_boolean_arg(args, "color_averaging_in_ale")
 convert_boolean_arg(args, "color_maximizing_in_gs")
 convert_boolean_arg(args, "color_averaging_in_gs")
+convert_boolean_arg(args, "color_no_change_in_gs")
 convert_boolean_arg(args, "stack_frames_in_gs")
 convert_boolean_arg(args, "crop_frame")
 convert_boolean_arg(args, "reset_max_reward")
@@ -212,10 +215,12 @@ convert_boolean_arg(args, "verbose")
 if args.use_gym:
   args.rom = args.gym_env
   args.color_averaging_in_ale = False
-  # if not args.color_averaging_in_gs:
-  #   args.color_maximizing_in_gs = True
-  if not args.color_maximizing_in_gs:
-    args.color_averaging_in_gs = True
+  args.color_averaging_in_gs = False
+  args.color_maximizing_in_gs = False
+  args.color_no_change_in_gs = True
+  if args.stack_frames_in_gs:
+    print("Can not specify stack-frames-in-gs because OpenAI Gym skips 2 - 4 frames randomly")
+    sys.exit(1)
 
 num_color_options = 0
 if args.color_averaging_in_ale:
@@ -224,13 +229,16 @@ if args.color_maximizing_in_gs:
   num_color_options += 1
 if args.color_averaging_in_gs:
   num_color_options += 1
+if args.color_no_change_in_gs:
+  num_color_options += 1
 if num_color_options != 1:
-  print("Specify just one of color_averaging_in_ale, args_color_maximizing, args_color_maximizing")
+  print("Specify just one of color-averaging-in-ale, color-maximizing-in-gs, color-maximizing-in-gs, color-no-change-in-gs")
   sys.exit(1)
 
 if args.stack_frames_in_gs:
+  if args.frames_skip_in_gs is None:
+    args.frames_skip_in_gs = 4
   args.frames_skip_in_ale = 1
-  args.frames_skip_in_gs = 4
 elif args.color_averaging_in_ale:
   if args.frames_skip_in_ale is None:
     args.frames_skip_in_ale = 4
@@ -239,10 +247,18 @@ elif args.color_maximizing_in_gs:
   if args.frames_skip_in_gs is None:
     args.frames_skip_in_gs = 4
   args.frames_skip_in_ale = 1
-else: # args.color_averaging_in_gs
+elif args.color_averaging_in_gs:
   if args.frames_skip_in_gs is None:
     args.frames_skip_in_gs = 4
   args.frames_skip_in_ale = 1
+elif args.color_no_change_in_gs:
+  if args.frames_skip_in_gs is None:
+    args.frames_skip_in_gs = 1 # Actually OpenAI Gym skip 2 - 4 frames randomly
+  args.frames_skip_in_ale = 1
+else:
+  print("Internal Error in option.py")
+  sys.exit(1)
+
 
 if args.max_time_step is None:
   args.max_time_step = args.max_mega_step * 10**6
