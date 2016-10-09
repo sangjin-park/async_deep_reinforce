@@ -352,8 +352,8 @@ class A3CTrainingThread(object):
       if self.options.train_episode_steps > 0:
         if self.episode_reward > self.max_reward:
           self.max_reward = self.episode_reward
-          if self.episode_scores.is_highscore(self.episode_reward) or \
-            self.game_state.lives > self.initial_lives / 2:
+          _ = self.episode_scores.is_highscore(self.episode_reward)
+          if True:
             tes = self.options.train_episode_steps
             if self.options.tes_extend and self.initial_lives != 0:
               tes *= self.options.tes_extend_ratio * (self.game_state.lives / self.initial_lives)
