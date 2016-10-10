@@ -12,6 +12,6 @@ do
   grep ROOM $1 > /tmp/$1.ROOMS
   grep OHL  $1 > /tmp/$1.OHL
   python plot.py $1 --save
-  mv $1.png /tmp
+  mv $1*png /tmp
   sleep 300
 done
