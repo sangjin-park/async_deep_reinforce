@@ -21,6 +21,7 @@ ENTROPY_BETA = 0.01 # entropy regurarlization constant
 MAX_MEGA_STEP = 100 # max  learning step (in Mega step)
 END_MEGA_STEP = 50 # last learning step (in Mega step): end before max learning step
 SAVE_MEGA_INTERVAL = 3 # save interval (in Mega step)
+SAVE_BEST_AVG_ONLY = False # save only when best average score
 MAX_TO_KEEP = None # maximum number of recent checkpoint files to keep (None means no-limit)
 
 GRAD_NORM_CLIP = 40.0 # gradient norm clipping
@@ -62,7 +63,7 @@ CROP_FRAME = True # Crop frame
 
 TRAIN_EPISODE_STEPS = 0 # train steps for new record (no train if "< LOCAL_T_MAX". record only)
 REWARD_CLIP = 1.0 # Clip reward by -REWARD_CLIP - REWARD_CLIP. (0.0 means no clip)
-RESET_MAX_REWARD = False # Reset max reward in new episode
+RESET_MAX_REWARD = False # (not used now)
 SCORE_AVERAGING_LENGTH = 100 # Episode score averaging length
 SCORE_HIGHEST_RATIO = 0.5 # Threshold of highest ratio to be highscore 
 TES_EXTEND = False # Extend train-episode-steps based of remaining lives 
@@ -79,10 +80,13 @@ NUM_EPISODE_RECORD = 20 # Number of episode to record
 RECORD_SCREEN_DIR = None # Game screen (output of ALE) record directory 
 RECORD_GS_SCREEN_DIR = None # Game screen (input to A3C) record directory
 RECORD_NEW_RECORD_DIR = None # New record record dirctory
+RECORD_ALL_NON0_RECORD = False # Record all non-zero-score game as new record
+RECORD_NEW_ROOM_DIR = None # New room record dirctory
 
 DISPLAY = False # Display in a3c_display.py (set False in headless environment)
 VERBOSE = True # Output options (to record run parameter)
 
+GYM_EVAL = False # OpenAI Gym Evaluation mode
 
 # utility for args conversion
 # convert boolean string to boolean value
@@ -126,6 +130,7 @@ parser.add_argument('--end-mega-step', type=int, default=END_MEGA_STEP)
 parser.add_argument('--end-time-step', type=int, default=None)
 parser.add_argument('--save-mega-interval', type=int, default=SAVE_MEGA_INTERVAL)
 parser.add_argument('--save-time-interval', type=int, default=None)
+parser.add_argument('--save-best-avg-only', type=str, default=str(SAVE_BEST_AVG_ONLY))
 parser.add_argument('--max-to-keep', type=int, default=MAX_TO_KEEP)
 
 parser.add_argument('--grad-norm-clip', type=float, default=GRAD_NORM_CLIP)
@@ -186,13 +191,18 @@ parser.add_argument('--num-episode-record', type=str, default=NUM_EPISODE_RECORD
 parser.add_argument('--record-screen-dir', type=str, default=RECORD_SCREEN_DIR)
 parser.add_argument('--record-gs-screen-dir', type=str, default=RECORD_GS_SCREEN_DIR)
 parser.add_argument('--record-new-record-dir', type=str, default=RECORD_NEW_RECORD_DIR)
+parser.add_argument('--record-all-non0-record', type=str, default=str(RECORD_ALL_NON0_RECORD))
+parser.add_argument('--record-new-room-dir', type=str, default=RECORD_NEW_ROOM_DIR)
 
 parser.add_argument('--display', type=str, default=str(DISPLAY))
 
 parser.add_argument('-v', '--verbose', type=str, default=str(VERBOSE))
 
+parser.add_argument('--gym-eval', type=str, default=str(GYM_EVAL))
+
 args = parser.parse_args()
 
+convert_boolean_arg(args, "save_best_avg_only")
 convert_boolean_arg(args, "use_gym")
 convert_boolean_arg(args, "use_gpu")
 convert_boolean_arg(args, "use_lstm")
@@ -209,8 +219,15 @@ convert_boolean_arg(args, "reset_max_reward")
 convert_boolean_arg(args, "tes_extend")
 convert_boolean_arg(args, "clear_history_on_death")
 convert_boolean_arg(args, "clear_history_after_ohl")
+convert_boolean_arg(args, "record_all_non0_record")
 convert_boolean_arg(args, "display")
 convert_boolean_arg(args, "verbose")
+convert_boolean_arg(args, "gym_eval")
+
+if args.gym_eval:
+  if args.record_screen_dir is None:
+    print("add --record-screen-dir=RECORD_SCREEN_DIR when --gym-eval=True")
+    sys.exit(1)
 
 if args.use_gym:
   args.rom = args.gym_env
@@ -224,9 +241,7 @@ if args.use_gym:
   # Requirement for OpenAI Gym
   args.terminate_on_lives_lost = False
   args.tes_extend = False
-  args.tes_extend_ratio = 1.0
   args.clear_history_on_death = False
-  args.clear_history_after_ohl = False
 
 num_color_options = 0
 if args.color_averaging_in_ale:

@@ -39,6 +39,7 @@ class GameState(object):
     self.rooms = np.zeros((24), dtype=np.int)
     self.prev_room_no = 1
     self.room_no = 1
+    self.new_room = -1
 
     if options.use_gym:
       # see https://github.com/openai/gym/issues/349
@@ -138,6 +139,7 @@ class GameState(object):
     self.rooms[room_no] += 1
     if self.rooms[room_no] == 1:
       print("[PSC]@@@ NEW ROOM({}) VISITED: visit counts={}".format(room_no, self.rooms))
+      self.new_room = room_no
     self.prev_room_no = self.room_no
     self.room_no = room_no
 
@@ -290,6 +292,8 @@ class GameState(object):
       self.episode += 1
       self.stepNo = 1
       print("game_state: writing screen images to ", self.episode_record_dir)
+
+    self.new_room = -1
     
   def process(self, action):
     if options.use_gym:

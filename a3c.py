@@ -147,9 +147,20 @@ def train_function(parallel_index):
   if options.psc_use:
     training_thread.game_state.psc_set_psc_info(psc_info)
 
+  best_average_score = 0
   while True:
     if (parallel_index == 0) and (global_t > next_save_steps):
-      save_data(training_thread)
+      if options.save_best_avg_only:
+        average_score = training_thread.episode_scores.average()
+        print("%%% best_average_score={:.5f}, average_score={:.5f}".format(best_average_score, average_score))
+        if average_score > best_average_score:
+          best_average_score = average_score
+          print("%%% NEW best_average_score={:.5f}".format(best_average_score))
+          save_data(training_thread)
+        else:
+          print("%%% no update of best_average_score")
+      else:
+        save_data(training_thread)
       next_save_steps += options.save_time_interval
       
     if stop_requested:
@@ -157,31 +168,82 @@ def train_function(parallel_index):
     if global_t > options.end_time_step:
       break
 
-    diff_global_t = training_thread.process(sess, global_t, summary_writer,
-                                            summary_op, score_input)
+    diff_global_t, _ = training_thread.process(sess, global_t, summary_writer,
+                                               summary_op, score_input)
     global_t += diff_global_t
-    
+     
+
+def gym_eval_function(parallel_index):
+  global global_t
+  global next_save_steps
+  
+  training_thread = training_threads[parallel_index]
+  # set start_time
+  start_time = time.time()
+  training_thread.set_start_time(start_time)
+
+  # for pseudo-count
+  if options.psc_use:
+    training_thread.game_state.psc_set_psc_info(psc_info)
+
+  env = training_thread.game_state.gym
+  env.monitor.start(options.record_screen_dir)
+  env.reset()
+  spec = env.spec
+
+  trials = spec.trials
+  trials_in_thread = trials // options.parallel_size
+  if parallel_index < trials % options.parallel_size:
+    trials_in_thread += 1
+
+  timestep_limit = spec.timestep_limit
+  options.max_play_steps = timestep_limit // options.frames_skip_in_gs
+  
+  for _ in range(trials_in_thread):
+    while True:
+      if stop_requested:
+        break
+
+      diff_global_t, terminal_end = training_thread.process(sess, global_t, summary_writer,
+                                                            summary_op, score_input)
+      global_t += diff_global_t
+      if terminal_end:
+        break
+
+  env.monitor.close()
+ 
     
 def signal_handler(signal, frame):
   global stop_requested
   print('You pressed Ctrl+C!')
   stop_requested = True
   
-train_threads = []
-for i in range(options.parallel_size):
-  train_threads.append(threading.Thread(target=train_function, args=(i,)))
-  
-signal.signal(signal.SIGINT, signal_handler)
+if options.gym_eval:
+  eval_threads = []
+  for i in range(options.parallel_size):
+    eval_threads.append(threading.Thread(target=gym_eval_function, args=(i,)))
 
-# set start time
-start_time = time.time() - wall_t
+  global_t = 0
 
-for t in train_threads:
-  t.start()
+  for t in eval_threads:
+    t.start()
 
-print('Press Ctrl+C to stop')
+else:
+  train_threads = []
+  for i in range(options.parallel_size):
+    train_threads.append(threading.Thread(target=train_function, args=(i,)))
+    
+  signal.signal(signal.SIGINT, signal_handler)
 
-for t in train_threads:
-  t.join()
+  # set start time
+  start_time = time.time() - wall_t
 
-save_data(training_threads[0])
+  for t in train_threads:
+    t.start()
+
+  print('Press Ctrl+C to stop')
+
+  for t in train_threads:
+    t.join()
+
+  save_data(training_threads[0])

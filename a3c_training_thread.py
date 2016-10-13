@@ -121,9 +121,17 @@ class A3CTrainingThread(object):
           os.makedirs(self.options.record_new_record_dir)
       self.episode_screens = []
 
+    if self.options.record_new_room_dir is not None:
+      if self.thread_index == 0:
+        if not os.path.exists(self.options.record_new_room_dir):
+          os.makedirs(self.options.record_new_room_dir)
+      self.episode_screens = []
+
     self.greediness = options.greediness
     self.repeat_action_ratio = options.repeat_action_ratio
     self.prev_action = 0
+
+    
     
 
   def _anneal_learning_rate(self, global_time_step):
@@ -253,7 +261,8 @@ class A3CTrainingThread(object):
  
       self.local_t += 1
 
-      if self.options.record_new_record_dir is not None:
+      if self.options.record_new_record_dir is not None \
+         or self.options.record_new_room_dir is not None:
         screen = np.array(self.game_state.s_t)[:,:,3]
         self.episode_screens.append(screen)
 
@@ -283,12 +292,12 @@ class A3CTrainingThread(object):
               self.episode_reward, self.game_state.room_no,
               self.game_state.lives, value_, self.game_state.psc_reward))
 
-      if self.game_state.room_no != self.game_state.prev_room_no:
-        elapsed_time = time.time() - self.start_time
-        print("t={:6.0f},s={:9d},th={}:{}RM{:02d}>RM{:02d}| l={:.0f},v={:.5f},pr={:.5f}".format(
-              elapsed_time, global_t, self.thread_index, self.indent, 
-              self.game_state.prev_room_no, self.game_state.room_no,
-              self.game_state.lives, value_, self.game_state.psc_reward))
+      # if self.game_state.room_no != self.game_state.prev_room_no:
+      #   elapsed_time = time.time() - self.start_time
+      #   print("t={:6.0f},s={:9d},th={}:{}RM{:02d}>RM{:02d}| l={:.0f},v={:.5f},pr={:.5f}".format(
+      #         elapsed_time, global_t, self.thread_index, self.indent, 
+      #         self.game_state.prev_room_no, self.game_state.room_no,
+      #         self.game_state.lives, value_, self.game_state.psc_reward))
 
       if self.options.train_episode_steps > 0:
         if self.game_state.lives < self.episode_liveses[-2]:
@@ -308,9 +317,23 @@ class A3CTrainingThread(object):
                            self.episode_reward, global_t)
           
         if self.options.train_episode_steps > 0:
+          if self.options.record_new_room_dir is not None \
+             and self.game_state.new_room >= 0:
+            dirname = "s{:09d}-th{}-r{:03.0f}-RM{:02d}".format(global_t,  self.thread_index,\
+                       self.episode_reward, self.game_state.new_room)
+            dirname = os.path.join(self.options.record_new_room_dir, dirname)
+            os.makedirs(dirname)
+            for index, screen in enumerate(self.episode_screens):
+              filename = "{:06d}.png".format(index)
+              filename = os.path.join(dirname, filename)
+              screen_image = screen.reshape((84, 84)) * 255.
+              cv2.imwrite(filename, screen_image)
+            print("@@@ New Room record screens saved to {}".format(dirname))
+
           if self.episode_reward > self.max_episode_reward:
             if self.options.record_new_record_dir is not None:
-              dirname = "s{:09d}-th{}-r{:03.0f}".format(global_t,  self.thread_index, self.episode_reward)
+              dirname = "s{:09d}-th{}-r{:03.0f}-RM{:02d}".format(global_t,  self.thread_index,\
+                         self.episode_reward, self.game_state.room_no)
               dirname = os.path.join(self.options.record_new_record_dir, dirname)
               os.makedirs(dirname)
               for index, screen in enumerate(self.episode_screens):
@@ -319,17 +342,19 @@ class A3CTrainingThread(object):
                 screen_image = screen.reshape((84, 84)) * 255.
                 cv2.imwrite(filename, screen_image)
               print("@@@ New Record screens saved to {}".format(dirname))
+            self.max_episode_reward = self.episode_reward
+            if self.options.record_all_non0_record:
+              self.max_episode_reward = 0
 
-          if self.options.reset_max_reward:
-            self.max_reward = 0.0
-          self.max_episode_reward = self.episode_reward
+          self.max_reward = 0.0
           self.episode_states = []
           self.episode_actions = []
           self.episode_rewards = []
           self.episode_values = []
           self.episode_liveses = []
           self.episode_scores.add(self.episode_reward, global_t, self.thread_index)
-          if self.options.record_new_record_dir is not None:
+          if self.options.record_new_record_dir is not None \
+             or self.options.record_new_room_dir is not None:
             self.episode_screens= []
 
         self.episode_reward = 0
@@ -346,10 +371,14 @@ class A3CTrainingThread(object):
       print("### Performance : {} STEPS in {:.0f} sec. {:.0f} STEPS/sec. {:.2f}M STEPS/hour".format(
             global_t,  elapsed_time, steps_per_sec, steps_per_sec * 3600 / 1000000.))
 
+    if self.options.gym_eval:
+      diff_local_t = self.local_t - start_local_t
+      return diff_local_t, terminal_end
+
     # don't train if following condition
     # requirement for OpenAI Gym: --terminate-on-lives-lost=False
     if self.options.terminate_on_lives_lost and (self.thread_index == 0) and (not self.options.train_in_eval):
-      return 0
+      return 0, terminal_end
     else:
       if self.options.train_episode_steps > 0:
         if self.episode_reward > self.max_reward:
@@ -370,14 +399,12 @@ class A3CTrainingThread(object):
             rewards = self.episode_rewards[-tes:]
             values = self.episode_values[-tes:]
             liveses = self.episode_liveses[-tes-1:]
-            # requirement for OpenAI Gym: --clear-history-after-ohl=False
             if self.options.clear_history_after_ohl:
               self.episode_states = []
               self.episode_actions = []
               self.episode_rewards = []
               self.episode_values = []
               self.episode_liveses = self.episode_liveses[-2:]
-
 
       R = 0.0
       if not terminal_end:
@@ -445,5 +472,5 @@ class A3CTrainingThread(object):
 
       # return advanced local step size
       diff_local_t = self.local_t - start_local_t
-      return diff_local_t
+      return diff_local_t, terminal_end
     

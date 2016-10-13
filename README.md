@@ -75,6 +75,19 @@ To create play movie without displaying the game screen,
 
 As for options, see options.py.
 
+## How to reproduce OpenAI Gym Result
+
+I uploaded evaluation result in OpenAI Gym. See ["OpenAI Gym evaluation page"](https://gym.openai.com/evaluations/eval_irmpzSknRMAjzv2yhseNA). I'd appreciate if you cloud review my evaluation.
+
+To repuroduce OpenAP Gym result,
+
+   $ ./run-option-gym montezuma-j-tes30-b0020-ff-fs2
+
+Play screens are recorded in following directory,
+
+- new-room-screen : screens when entered new room are recored
+- nr-screen : screens when achieved new score are recorded
+
 ## Status of code
 
 The source code is still under development and may chage frequently. Currently, I'm searching best parameters to speed-up learning and get higher score. In this search, I'm adding new functions to change behavior of the program. So, it might be degraded sometimes. Sorry for that in advance.
