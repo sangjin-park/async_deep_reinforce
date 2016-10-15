@@ -16,9 +16,9 @@ The following graph is the average score of Montezuma's Revenge.
 
 ![learning result after 39M steps](https://github.com/Itsukara/async_deep_reinforce/blob/master/learning-curves/montezuma-psc-39M.png)
 
-0 - 30M steps: Pseudo-count based reward is ON. (--psc-use=True)
+0 - 30M steps: Pseudo-count based reward is ON.
 
-30 - 30M steps: Above + Reset highscore in every episode. (--train-episode-steps=150 --reset-max-reward=True)
+30 - 40M steps: Above + on-highscore-learning is ON.
 
 ## Best Learning curve of Monezuma's Revenge
 
