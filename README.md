@@ -56,7 +56,7 @@ When program requests input, just hit Enter or input "y" or "yes" and hit Enter.
 
 I built the environment using my scripts on Ubuntu 14.04LTS 64bit in Google Cloud Platform, Amazon EC2 and Microsoft Azure. 
 
-## How to run
+## How to train
 
 To train,
 
@@ -77,7 +77,7 @@ As for options, see options.py.
 
 ## How to reproduce OpenAI Gym Result
 
-I uploaded evaluation result in OpenAI Gym. See ["OpenAI Gym evaluation page"](https://gym.openai.com/evaluations/eval_irmpzSknRMAjzv2yhseNA). I'd appreciate if you cloud review my evaluation.
+I uploaded evaluation result in OpenAI Gym. See ["OpenAI Gym evaluation page"](https://gym.openai.com/evaluations/eval_mMQJe1nsS7OA3U72AvvJEQ). I'd appreciate if you cloud review my evaluation.
 
 To repuroduce OpenAP Gym result,
 
