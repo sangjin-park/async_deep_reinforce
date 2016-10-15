@@ -99,7 +99,7 @@ class GameState(object):
   # for pseudo-count
   def psc_set_psc_info(self, psc_info):
     if psc_info["psc_n"] != 0:
-      self.psc_vcount = np.array(psc_info["psc_vcount"], dtype=np.float32)
+      self.psc_vcount = np.array(psc_info["psc_vcount"], dtype=np.float64)
       self.psc_n = psc_info["psc_n"]
  
   # for pseudo-count
@@ -114,7 +114,11 @@ class GameState(object):
       vcount = self.psc_vcount[range(k), psc_image]
       self.psc_vcount[range(k), psc_image] += 1.0
       r_over_rp = np.prod(nr * vcount / (1.0 + vcount))
-      psc_count = r_over_rp / (1.0 - r_over_rp + 1.0e-37)
+      dominator = 1.0 - r_over_rp
+      if dominator <= 0.0:
+        print("psc_add_image: dominator <= 0.0 : dominator=", dominator)
+        dominator = 1.0e-20
+      psc_count = r_over_rp / dominator
       psc_reward = self.psc_beta / math.pow(psc_count + self.psc_alpha, self.psc_rev_pow)
     else:
       self.psc_vcount[range(k), psc_image] += 1.0
