@@ -2,9 +2,9 @@
 
 if [ $# -eq 1 ]; then
     program="a3c.py"
-    #add_option="--record-gs-screen-dir=gs-screen"
-    add_option="--record-new-record-dir=nr-screen"
-    # add_option=""
+    add_option=""
+    add_option="--record-gs-screen-dir=gs-screen"
+    add_option="--record-new-record-dir=nr-screen --record-new-room-dir=new-room-screen"
 elif [ $# -eq 2 ]; then
     program="a3c_display.py"
     add_option="--display=False --record-screen-dir=screen"
@@ -15,6 +15,18 @@ fi
 
 comment=""
 case $1 in
+  "montezuma-k-tes45-b0020-lstm-fs6")
+    comment="tes=45, psc_beta=0.020, lstm, frame_skip=6, greediness=0.01, rar=0.25"
+    rom="montezuma_revenge.bin"
+    option="--use-gym=False --train-episode-steps=45 --psc-beta=0.020 --frames-skip-in-gs=6 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=400 --score-log-interval=100 --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25 --save-best-avg-only=True --save-time-interval=200000 --max-to-keep=20"
+    ;;
+    
+  "montezuma-k-tes45-b0020-ff-fs6")
+    comment="tes=45, psc_beta=0.020, ff,   frame_skip=6, greediness=0.01, rar=0.25"
+    rom="montezuma_revenge.bin"
+    option="--use-gym=False --train-episode-steps=45 --psc-beta=0.020 --frames-skip-in-gs=6 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --reset-max-reward=True --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=400 --score-log-interval=100 --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25 --save-best-avg-only=True --save-time-interval=200000 --max-to-keep=20"
+    ;;
+    
   "montezuma-h-b002-cmax-llrr0-tes1500-lstm")
     comment="psc_beta=0.02 cmax tes=1500, lstm, rar=0.25"
     rom="montezuma_revenge.bin"

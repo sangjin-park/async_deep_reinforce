@@ -19,6 +19,6 @@ while true
 do
   run-avconv-all $1
   run-avconv-all $1
-  rm -r $1/*00
+  rm -r $1/*RM??
   sleep 300
 done
