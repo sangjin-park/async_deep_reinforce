@@ -6,6 +6,7 @@ import time
 import sys
 import cv2
 import os
+import lzma
 from collections import deque
 from sortedcontainers import SortedList
 
@@ -263,7 +264,8 @@ class A3CTrainingThread(object):
 
       if self.options.record_new_record_dir is not None \
          or self.options.record_new_room_dir is not None:
-        screen = np.array(self.game_state.s_t)[:,:,3]
+        screen = self.game_state.uncropped_screen
+        screen = lzma.compress(screen.tobytes(), preset=0)
         self.episode_screens.append(screen)
 
       # terminate if the play time is too long
@@ -302,9 +304,9 @@ class A3CTrainingThread(object):
       if self.options.train_episode_steps > 0:
         if self.game_state.lives < self.episode_liveses[-2]:
           elapsed_time = time.time() - self.start_time
-          print("t={:6.0f},s={:9d},th={}:{}l={:.0f}>{:.0f}    |".format(
+          print("t={:6.0f},s={:9d},th={}:{}l={:.0f}>{:.0f}RM{:02d}|".format(
                 elapsed_time, global_t, self.thread_index, self.indent, 
-                self.episode_liveses[-2], self.game_state.lives))
+                self.episode_liveses[-2], self.game_state.lives, self.game_state.room_no))
 
       if terminal:
         terminal_end = True
@@ -326,7 +328,8 @@ class A3CTrainingThread(object):
             for index, screen in enumerate(self.episode_screens):
               filename = "{:06d}.png".format(index)
               filename = os.path.join(dirname, filename)
-              screen_image = screen.reshape((84, 84)) * 255.
+              screen_image = screen
+              screen_image = np.frombuffer(lzma.decompress(screen), dtype=np.uint8).reshape((210, 160))
               cv2.imwrite(filename, screen_image)
             print("@@@ New Room record screens saved to {}".format(dirname))
 
@@ -339,7 +342,8 @@ class A3CTrainingThread(object):
               for index, screen in enumerate(self.episode_screens):
                 filename = "{:06d}.png".format(index)
                 filename = os.path.join(dirname, filename)
-                screen_image = screen.reshape((84, 84)) * 255.
+                screen_image = screen
+                screen_image = np.frombuffer(lzma.decompress(screen), dtype=np.uint8).reshape((210, 160))
                 cv2.imwrite(filename, screen_image)
               print("@@@ New Record screens saved to {}".format(dirname))
             self.max_episode_reward = self.episode_reward

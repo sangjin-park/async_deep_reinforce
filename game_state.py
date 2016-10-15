@@ -138,7 +138,7 @@ class GameState(object):
     room_no = ram[3]
     self.rooms[room_no] += 1
     if self.rooms[room_no] == 1:
-      print("[PSC]@@@ NEW ROOM({}) VISITED: visit counts={}".format(room_no, self.rooms))
+      print("[PSC]th={} @@@ NEW ROOM({}) VISITED: visit counts={}".format(self.thread_index, room_no, self.rooms))
       self.new_room = room_no
     self.prev_room_no = self.room_no
     self.room_no = room_no
@@ -220,6 +220,9 @@ class GameState(object):
     # reshape it into (210, 160)
     reshaped_screen = np.reshape(self._screen, (210, 160))
     
+    # set uncropped frame for screen output
+    self.uncropped_screen = reshaped_screen
+
     # resize to height=110, width=84
     if self.options.crop_frame:
       resized_screen = cv2.resize(reshaped_screen, (84, 110))
