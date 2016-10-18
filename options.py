@@ -23,7 +23,7 @@ END_MEGA_STEP = 50 # last learning step (in Mega step): end before max learning 
 SAVE_MEGA_INTERVAL = 3 # save interval (in Mega step)
 SAVE_BEST_AVG_ONLY = False # save only when best average score
 MAX_TO_KEEP = None # maximum number of recent checkpoint files to keep (None means no-limit)
-SYNC_THREAD = True # save with syncronization among thread
+SYNC_THREAD = False # save with syncronization among thread
 
 GRAD_NORM_CLIP = 40.0 # gradient norm clipping
 USE_GPU = True # To use GPU, set True
