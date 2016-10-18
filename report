@@ -8,10 +8,14 @@ fi
 while true
 do
   cp $1 /tmp
-  egrep "saved|Average" $1 > /tmp/$1.avg
+  egrep "(Data saved)|Average|options" $1 > /tmp/$1.avg
   grep ROOM $1 > /tmp/$1.ROOMS
+  python rooms.py /tmp/$1.ROOMS > /tmp/$1.rooms
   grep OHL  $1 > /tmp/$1.OHL
   python plot.py $1 --save
   mv $1*png /tmp
+  ls -d screen*/* > /tmp/$1.screen
+
+  echo "sleep 300"
   sleep 300
 done

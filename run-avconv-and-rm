@@ -17,6 +17,8 @@ fi
 
 while true
 do
+  echo "@@@@@ `export TZ=JST-9;date +%Y/%m/%d-%H:%M:%S` @@@@@"
+  export TZ=JST-9;date +%Y/%m/%d-%H:%M:%S
   run-avconv-all $1
   run-avconv-all $1
   rm -r $1/*RM??
