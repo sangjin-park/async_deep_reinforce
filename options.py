@@ -60,6 +60,7 @@ COLOR_AVERAGING_IN_GS = False # Color averaging in GS
 COLOR_NO_CHANGE_IN_GS = False # Color no change in GS
 STACK_FRAMES_IN_GS = False # Stack frames in gs (not skip them)
 CROP_FRAME = True # Crop frame
+COMPRESS_FRAME = True # Compress frame to reduce memory for screen outpout
 
 TRAIN_EPISODE_STEPS = 0 # train steps for new record (no train if "< LOCAL_T_MAX". record only)
 REWARD_CLIP = 1.0 # Clip reward by -REWARD_CLIP - REWARD_CLIP. (0.0 means no clip)
@@ -172,6 +173,7 @@ parser.add_argument('--color-no-change-in-gs', type=str, default=str(COLOR_NO_CH
 parser.add_argument('--frames-skip-in-gs', type=int, default=None)
 parser.add_argument('--stack-frames-in-gs', type=str, default=str(STACK_FRAMES_IN_GS))
 parser.add_argument('--crop-frame', type=str, default=str(CROP_FRAME))
+parser.add_argument('--compress-frame', type=str, default=str(COMPRESS_FRAME))
 parser.add_argument('--train-episode-steps', type=int, default=TRAIN_EPISODE_STEPS)
 parser.add_argument('--reward-clip', type=float, default=REWARD_CLIP)
 parser.add_argument('--reset-max-reward', type=str, default=str(RESET_MAX_REWARD))
@@ -215,6 +217,7 @@ convert_boolean_arg(args, "color_averaging_in_gs")
 convert_boolean_arg(args, "color_no_change_in_gs")
 convert_boolean_arg(args, "stack_frames_in_gs")
 convert_boolean_arg(args, "crop_frame")
+convert_boolean_arg(args, "compress_frame")
 convert_boolean_arg(args, "reset_max_reward")
 convert_boolean_arg(args, "tes_extend")
 convert_boolean_arg(args, "clear_history_on_death")

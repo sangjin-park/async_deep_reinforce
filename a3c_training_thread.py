@@ -265,7 +265,8 @@ class A3CTrainingThread(object):
       if self.options.record_new_record_dir is not None \
          or self.options.record_new_room_dir is not None:
         screen = self.game_state.uncropped_screen
-        screen = lzma.compress(screen.tobytes(), preset=0)
+        if self.options.compress_frame:
+          screen = lzma.compress(screen.tobytes(), preset=0)
         self.episode_screens.append(screen)
 
       # terminate if the play time is too long
@@ -329,7 +330,8 @@ class A3CTrainingThread(object):
               filename = "{:06d}.png".format(index)
               filename = os.path.join(dirname, filename)
               screen_image = screen
-              screen_image = np.frombuffer(lzma.decompress(screen), dtype=np.uint8).reshape((210, 160))
+              if self.options.compress_frame:
+                screen_image = np.frombuffer(lzma.decompress(screen), dtype=np.uint8).reshape((210, 160))
               cv2.imwrite(filename, screen_image)
             print("@@@ New Room record screens saved to {}".format(dirname))
 
@@ -343,7 +345,8 @@ class A3CTrainingThread(object):
                 filename = "{:06d}.png".format(index)
                 filename = os.path.join(dirname, filename)
                 screen_image = screen
-                screen_image = np.frombuffer(lzma.decompress(screen), dtype=np.uint8).reshape((210, 160))
+                if self.options.compress_frame:
+                  screen_image = np.frombuffer(lzma.decompress(screen), dtype=np.uint8).reshape((210, 160))
                 cv2.imwrite(filename, screen_image)
               print("@@@ New Record screens saved to {}".format(dirname))
             self.max_episode_reward = self.episode_reward
