@@ -1,0 +1,10 @@
+#!/bin/bash
+hosts=(vm1 vm2 vm3 vm4 vm5 vm6)
+zones=(us-west1-b us-west1-a us-east1-c us-east1-d us-central1-b us-central1-b)
+  for (( i = 0; i < ${#hosts[@]]}; ++i ))
+  do
+    host=${hosts[$i]}
+    zone=${zones[$i]}
+    status=`gcloud compute instances describe $host --zone $zone | grep status`
+    echo "$host $status"
+  done

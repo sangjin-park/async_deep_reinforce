@@ -1,0 +1,23 @@
+#!/bin/bash
+hosts=(vm1 vm2 vm3 vm4 vm5 vm6)
+zones=(us-west1-b us-west1-a us-east1-c us-east1-d us-central1-b us-central1-b)
+while true 
+do
+  echo "*** check status of compute instances and start if not RUNNING ***"
+  for (( i = 0; i < ${#hosts[@]]}; ++i ))
+  do
+    host=${hosts[$i]}
+    zone=${zones[$i]}
+    status=`gcloud compute instances describe $host --zone $zone | grep status`
+    echo -n "[`export TZ=JST-9;date +%Y/%m/%d-%H:%M:%S`] $host $status"
+    if [ "$status" = "status: RUNNING" ]; then
+      echo " => OK"
+    else
+      echo " => NG => try to start it"
+      gcloud compute instances start $host --zone $zone
+      status=`gcloud compute instances describe $host --zone $zone | grep status`
+      echo  "[`export TZ=JST-9;date +%Y/%m/%d-%H:%M:%S`] $host $status"
+    fi
+  done
+  sleep 120
+done

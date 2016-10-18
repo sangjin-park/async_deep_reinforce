@@ -1,0 +1,22 @@
+#!/bin/bash
+# You have to change following lines
+export home_dir=/home/itsukara21
+export run_dir=/home/itsukara21/pscOHL10172107
+export run_command=run-option-gym
+export runset=montezuma-k-tes28-b0020-ff-fs2
+
+# comment out next line after set up above lines
+exit
+
+# dont' have to change following lines
+export PATH=".:$home_dir/anaconda3/bin:$PATH"
+cd $home_dir
+echo "`export TZ=JST-9;date +%Y/%m/%d-%H:%M:%S` Start up!" >> startup.log
+
+cd $run_dir
+
+export log=log.`hostname`.$runset
+nohup $run_command $runset &>> $log &
+(sleep 100; nohup report $log &>> report.log )&
+(sleep 150; nohup run-avconv-and-rm screen.new-record &>> avconv1.log )&
+(sleep 300; nohup run-avconv-and-rm screen.new-room   &>> avconv2.log )&
