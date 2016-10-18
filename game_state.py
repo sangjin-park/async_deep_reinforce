@@ -102,6 +102,12 @@ class GameState(object):
       self.psc_vcount = np.array(psc_info["psc_vcount"], dtype=np.float64)
       self.psc_n = psc_info["psc_n"]
  
+  def psc_set_gs_info(self, gs_info):
+    self.psc_vcount = np.array(gs_info["psc_vcount"], dtype=np.float64)
+    self.psc_n = gs_info["psc_n"]
+    self.rooms = gs_info["rooms"]
+    self.episode = gs_info["episode"]
+ 
   # for pseudo-count
   def psc_add_image(self, psc_image):
     if psc_image.dtype != np.dtype('uint8'):

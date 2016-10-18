@@ -35,6 +35,17 @@ global_t = 0
 
 stop_requested = False
 
+# for thread syncroization
+th0_ready = threading.Event()
+all_ready = threading.Event()
+th0_finish = threading.Event()
+
+th0_ready.clear()
+all_ready.clear()
+th0_finish.clear()
+num_ready = 0
+
+
 if options.use_lstm:
   global_network = GameACLSTMNetwork(options.action_size, -1, device)
 else:
@@ -78,6 +89,7 @@ saver = tf.train.Saver(max_to_keep = options.max_to_keep)
 checkpoint = tf.train.get_checkpoint_state(options.checkpoint_dir)
 # for pseudo-count
 psc_info = {"psc_n":0, "psc_vcount":None}
+all_gs_info = [None for i in range(options.parallel_size)]
 if checkpoint and checkpoint.model_checkpoint_path:
   saver.restore(sess, checkpoint.model_checkpoint_path)
   print("checkpoint loaded:", checkpoint.model_checkpoint_path)
@@ -91,6 +103,7 @@ if checkpoint and checkpoint.model_checkpoint_path:
     wall_t = float(f.read())
   # for pseudo-count
   if options.psc_use:
+    # psc_info of thread0 (for compatibility)
     psc_fname = options.checkpoint_dir + '/' + 'psc.' + str(global_t)
     if os.path.exists(psc_fname):
       with open(psc_fname, "rb") as f:
@@ -98,6 +111,14 @@ if checkpoint and checkpoint.model_checkpoint_path:
       print("psc_info loaded:", psc_fname)
     else:
       print("psc_info does not exist and not loaded:", psc_fname)
+    # gs_info of all thread
+    gs_fname = options.checkpoint_dir + '/' + 'gs.' + str(global_t)
+    if os.path.exists(gs_fname):
+      with open(gs_fname, "rb") as f:
+        all_gs_info = pickle.load(f)
+      print("all_gs_info loaded:", gs_fname)
+    else:
+      print("all_gs_info does not exist and not loaded:", gs_fname)
 
   next_save_steps = (global_t + options.save_time_interval)//options.save_time_interval * options.save_time_interval
 else:
@@ -107,7 +128,7 @@ else:
   next_save_steps = options.save_time_interval
 
 
-def save_data(training_thread):
+def save_data(training_threads):
   if not os.path.exists(options.checkpoint_dir):
     os.mkdir(options.checkpoint_dir)  
 
@@ -122,12 +143,26 @@ def save_data(training_thread):
 
   # write psc_info
   if options.psc_use:
-    game_state = training_thread.game_state
+    # write psc_info of thread0 (for compatibility)
+    game_state = training_threads[0].game_state
     psc_n = game_state.psc_n
     psc_vcount = game_state.psc_vcount
     psc_fname = options.checkpoint_dir + '/' + 'psc.' + str(global_t_copy)
     with open(psc_fname, "wb") as f:
       pickle.dump({"psc_n":psc_n, "psc_vcount":psc_vcount}, f)
+    # write game_state info of all thread (all_gs_info)
+    all_gs_info = []
+    for i in range(options.parallel_size):
+      game_state = training_threads[i].game_state
+      psc_n = game_state.psc_n
+      psc_vcount = game_state.psc_vcount
+      rooms = game_state.rooms
+      episode = game_state.episode
+      gs_info = {"psc_n":psc_n, "psc_vcount":psc_vcount, "rooms":rooms, "episode":episode}
+      all_gs_info.append(gs_info)
+    gs_fname = options.checkpoint_dir + '/' + 'gs.' + str(global_t_copy)
+    with open(gs_fname, "wb") as f:
+      pickle.dump(all_gs_info, f)
 
   saver.save(sess, options.checkpoint_dir + '/' + 'checkpoint', global_step = global_t_copy)
 
@@ -137,6 +172,7 @@ def save_data(training_thread):
 def train_function(parallel_index):
   global global_t
   global next_save_steps
+  global num_ready
   
   training_thread = training_threads[parallel_index]
   # set start_time
@@ -146,27 +182,52 @@ def train_function(parallel_index):
   # for pseudo-count
   if options.psc_use:
     training_thread.game_state.psc_set_psc_info(psc_info)
+    gs_info = all_gs_info[parallel_index]
+    if gs_info is not None:
+      training_thread.game_state.psc_set_gs_info(gs_info) 
 
   best_average_score = 0
   while True:
-    if (parallel_index == 0) and (global_t > next_save_steps):
-      if options.save_best_avg_only:
-        average_score = training_thread.episode_scores.average()
-        print("%%% best_average_score={:.5f}, average_score={:.5f}".format(best_average_score, average_score))
-        if average_score > best_average_score:
-          best_average_score = average_score
-          print("%%% NEW best_average_score={:.5f}".format(best_average_score))
-          save_data(training_thread)
+    if global_t > next_save_steps or \
+      global_t > options.end_time_step or \
+      stop_requested:
+
+      if parallel_index == 0:
+        all_ready.clear()
+        th0_finish.clear()
+        num_ready = 1
+        th0_ready.set()
+        all_ready.wait()
+        next_save_steps += options.save_time_interval
+        th0_ready.clear()
+ 
+        if global_t > options.end_time_step or \
+          stop_requested:
+          save_data(training_threads)
+        elif options.save_best_avg_only:
+          average_score = training_thread.episode_scores.average()
+          print("%%% best_average_score={:.5f}, average_score={:.5f}".format(best_average_score, average_score))
+          if average_score > best_average_score:
+            best_average_score = average_score
+            print("%%% NEW best_average_score={:.5f}".format(best_average_score))
+            save_data(training_threads)
+          else:
+            print("%%% no update of best_average_score")
         else:
-          print("%%% no update of best_average_score")
+          save_data(training_threads)
+        
+        th0_finish.set()
+
       else:
-        save_data(training_thread)
-      next_save_steps += options.save_time_interval
-      
-    if stop_requested:
-      break
-    if global_t > options.end_time_step:
-      break
+        th0_ready.wait()
+        num_ready += 1
+        if num_ready == options.parallel_size:
+          all_ready.set()
+        th0_finish.wait()
+
+      if global_t > options.end_time_step or \
+        stop_requested:
+        break
 
     diff_global_t, _ = training_thread.process(sess, global_t, summary_writer,
                                                summary_op, score_input)
@@ -185,6 +246,9 @@ def gym_eval_function(parallel_index):
   # for pseudo-count
   if options.psc_use:
     training_thread.game_state.psc_set_psc_info(psc_info)
+    gs_info = all_gs_info[parallel_index]
+    if gs_info is not None:
+      training_thread.game_state.psc_set_gs_info(gs_info) 
 
   env = training_thread.game_state.gym
   env.monitor.start(options.record_screen_dir)
@@ -245,5 +309,3 @@ else:
 
   for t in train_threads:
     t.join()
-
-  save_data(training_threads[0])
