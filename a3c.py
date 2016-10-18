@@ -193,13 +193,14 @@ def train_function(parallel_index):
       stop_requested:
 
       if parallel_index == 0:
-        all_ready.clear()
-        th0_finish.clear()
-        num_ready = 1
-        th0_ready.set()
-        all_ready.wait()
-        next_save_steps += options.save_time_interval
-        th0_ready.clear()
+        if options.sync_thread:
+          all_ready.clear()
+          th0_finish.clear()
+          num_ready = 1
+          th0_ready.set()
+          all_ready.wait()
+          next_save_steps += options.save_time_interval
+          th0_ready.clear()
  
         if global_t > options.end_time_step or \
           stop_requested:
@@ -216,14 +217,16 @@ def train_function(parallel_index):
         else:
           save_data(training_threads)
         
-        th0_finish.set()
+        if options.sync_thread:
+          th0_finish.set()
 
       else:
-        th0_ready.wait()
-        num_ready += 1
-        if num_ready == options.parallel_size:
-          all_ready.set()
-        th0_finish.wait()
+        if options.sync_thread:
+          th0_ready.wait()
+          num_ready += 1
+          if num_ready == options.parallel_size:
+            all_ready.set()
+          th0_finish.wait()
 
       if global_t > options.end_time_step or \
         stop_requested:

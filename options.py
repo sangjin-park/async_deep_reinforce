@@ -23,6 +23,7 @@ END_MEGA_STEP = 50 # last learning step (in Mega step): end before max learning 
 SAVE_MEGA_INTERVAL = 3 # save interval (in Mega step)
 SAVE_BEST_AVG_ONLY = False # save only when best average score
 MAX_TO_KEEP = None # maximum number of recent checkpoint files to keep (None means no-limit)
+SYNC_THREAD = True # save with syncronization among thread
 
 GRAD_NORM_CLIP = 40.0 # gradient norm clipping
 USE_GPU = True # To use GPU, set True
@@ -133,6 +134,7 @@ parser.add_argument('--save-mega-interval', type=int, default=SAVE_MEGA_INTERVAL
 parser.add_argument('--save-time-interval', type=int, default=None)
 parser.add_argument('--save-best-avg-only', type=str, default=str(SAVE_BEST_AVG_ONLY))
 parser.add_argument('--max-to-keep', type=int, default=MAX_TO_KEEP)
+parser.add_argument('--sync-thread', type=str, default=str(SYNC_THREAD))
 
 parser.add_argument('--grad-norm-clip', type=float, default=GRAD_NORM_CLIP)
 parser.add_argument('--use-gpu', type=str, default=str(USE_GPU))
@@ -205,6 +207,7 @@ parser.add_argument('--gym-eval', type=str, default=str(GYM_EVAL))
 args = parser.parse_args()
 
 convert_boolean_arg(args, "save_best_avg_only")
+convert_boolean_arg(args, "sync_thread")
 convert_boolean_arg(args, "use_gym")
 convert_boolean_arg(args, "use_gpu")
 convert_boolean_arg(args, "use_lstm")
