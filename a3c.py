@@ -199,8 +199,9 @@ def train_function(parallel_index):
           num_ready = 1
           th0_ready.set()
           all_ready.wait()
-          next_save_steps += options.save_time_interval
           th0_ready.clear()
+          
+        next_save_steps += options.save_time_interval
  
         if global_t > options.end_time_step or \
           stop_requested:
