@@ -10,6 +10,17 @@ This code is fork from [miyosuda's code](https://github.com/miyosuda/async_deep_
 
 "on-highscore-learning" is my original idea, which learn from state-action-rewards-history when getting highscore. But in evaluation of Montezuma's Revenge, I set option to reset highscore in every episode, so learning occured in every score. (I'm changing this now. In new version, only highscore episode will be selected automatically based on history of scores) 
 
+## Slide
+
+See following slide (in English) for explanation of this project.
+
+[http://www.slideshare.net/ItsukaraIitsuka/drl-challenge-on-montezumas-revenge](http://www.slideshare.net/ItsukaraIitsuka/drl-challenge-on-montezumas-revenge
+)
+
+See following slide (in Japanese) for Japanese explanation.
+
+[http://www.slideshare.net/ItsukaraIitsuka/deepmind20166-unifying-countbased-exploration-and-intrinsic-motivation-pseudocount-montezumas-revenge](http://www.slideshare.net/ItsukaraIitsuka/deepmind20166-unifying-countbased-exploration-and-intrinsic-motivation-pseudocount-montezumas-reveng0e)
+
 ## Learning curve of Montezuma's Revenge
 
 The following graph is the average score of Montezuma's Revenge.
