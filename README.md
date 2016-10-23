@@ -95,8 +95,8 @@ To repuroduce OpenAP Gym result,
 
 Play screens are recorded in following directory,
 
-- new-room-screen : screens when entered new room are recored
-- nr-screen : screens when achieved new score are recorded
+- screen.new-room : screens when entered new room are recored
+- screen.new-record : screens when achieved new score are recorded
 
 ## Status of code
 
