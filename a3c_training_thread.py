@@ -175,6 +175,7 @@ class A3CTrainingThread(object):
   def set_start_time(self, start_time):
     self.start_time = start_time
 
+  #@profile
   def process(self, sess, global_t, summary_writer, summary_op, score_input):
     states = []
     actions = []
@@ -220,7 +221,8 @@ class A3CTrainingThread(object):
       terminal = self.game_state.terminal
 
       self.episode_reward += reward
-      if reward > 0 and self.options.rom == "montezuma_revenge.bin":
+      if reward > 0 and \
+         (self.options.rom == "montezuma_revenge.bin" or self.options.gym_env == "MontezumaRevenge-v0"):
         elapsed_time = time.time() - self.start_time
         print("t={:6.0f},s={:4.0f},th={}:{}r={:3.0f}RM{:02d}| NEW-SCORE".format(
               elapsed_time, global_t, self.thread_index, self.indent, self.episode_reward,
@@ -309,6 +311,11 @@ class A3CTrainingThread(object):
                 elapsed_time, global_t, self.thread_index, self.indent, 
                 self.episode_liveses[-2], self.game_state.lives, self.game_state.room_no))
 
+      # seperate steps after getting reward
+      if self.game_state.reward > 0:
+        if not terminal:
+          break
+
       if terminal:
         terminal_end = True
         elapsed_time = time.time() - self.start_time
@@ -388,9 +395,9 @@ class A3CTrainingThread(object):
       return 0, terminal_end
     else:
       if self.options.train_episode_steps > 0:
+        _ = self.episode_scores.is_highscore(self.episode_reward)
         if self.episode_reward > self.max_reward:
           self.max_reward = self.episode_reward
-          _ = self.episode_scores.is_highscore(self.episode_reward)
           if True:
             tes = self.options.train_episode_steps
             # requirement for OpenAI Gym: --test-extend=False
@@ -401,11 +408,18 @@ class A3CTrainingThread(object):
               tes = int(tes)
             tes = min(tes, len(self.episode_states))
             print("[OHL]SCORE={:3.0f},s={:9d},th={},lives={},steps={},tes={},RM{:02d}".format(self.episode_reward,  global_t, self.thread_index, self.game_state.lives, self.steps, tes, self.game_state.room_no))
-            states = self.episode_states[-tes:]
-            actions = self.episode_actions[-tes:]
-            rewards = self.episode_rewards[-tes:]
-            values = self.episode_values[-tes:]
-            liveses = self.episode_liveses[-tes-1:]
+            if tes == 0:
+              states = []
+              actions = []
+              rewards = []
+              values = []
+              liveses = self.episode_liveses[-1:]
+            else:
+              states = self.episode_states[-tes:]
+              actions = self.episode_actions[-tes:]
+              rewards = self.episode_rewards[-tes:]
+              values = self.episode_values[-tes:]
+              liveses = self.episode_liveses[-tes-1:]
             if self.options.clear_history_after_ohl:
               self.episode_states = []
               self.episode_actions = []
@@ -413,69 +427,70 @@ class A3CTrainingThread(object):
               self.episode_values = []
               self.episode_liveses = self.episode_liveses[-2:]
 
-      R = 0.0
-      if not terminal_end:
-        R = self.local_network.run_value(sess, self.game_state.s_t)
+      if len(states) > 0:
+        R = 0.0
+        if not terminal_end:
+          R = self.local_network.run_value(sess, self.game_state.s_t)
 
-      actions.reverse()
-      states.reverse()
-      rewards.reverse()
-      values.reverse()
+        actions.reverse()
+        states.reverse()
+        rewards.reverse()
+        values.reverse()
 
-      batch_si = []
-      batch_a = []
-      batch_td = []
-      batch_R = []
+        batch_si = []
+        batch_a = []
+        batch_td = []
+        batch_R = []
 
-      lives = liveses.pop()
-      # compute and accmulate gradients
-      for(ai, ri, si, Vi) in zip(actions, rewards, states, values):
-        # Consider the number of lives
-        if (not self.options.use_gym) and self.initial_lives != 0.0 and not self.terminate_on_lives_lost:
-          prev_lives = liveses.pop()
-          if prev_lives > lives:
-            weight = self.options.lives_lost_weight
-            rratio = self.options.lives_lost_rratio
-            R *= rratio * ( (1.0 - weight) + weight * (lives / prev_lives) )
-            ri = self.options.lives_lost_reward
-            lives = prev_lives
+        lives = liveses.pop()
+        # compute and accmulate gradients
+        for(ai, ri, si, Vi) in zip(actions, rewards, states, values):
+          # Consider the number of lives
+          if (not self.options.use_gym) and self.initial_lives != 0.0 and not self.terminate_on_lives_lost:
+            prev_lives = liveses.pop()
+            if prev_lives > lives:
+              weight = self.options.lives_lost_weight
+              rratio = self.options.lives_lost_rratio
+              R *= rratio * ( (1.0 - weight) + weight * (lives / prev_lives) )
+              ri = self.options.lives_lost_reward
+              lives = prev_lives
 
-        R = ri + self.options.gamma * R
-        td = R - Vi
-        a = np.zeros([self.options.action_size])
-        a[ai] = 1
+          R = ri + self.options.gamma * R
+          td = R - Vi
+          a = np.zeros([self.options.action_size])
+          a[ai] = 1
 
-        batch_si.append(si)
-        batch_a.append(a)
-        batch_td.append(td)
-        batch_R.append(R)
+          batch_si.append(si)
+          batch_a.append(a)
+          batch_td.append(td)
+          batch_R.append(R)
 
-      if self.options.use_lstm:
-        batch_si.reverse()
-        batch_a.reverse()
-        batch_td.reverse()
-        batch_R.reverse()
+        if self.options.use_lstm:
+          batch_si.reverse()
+          batch_a.reverse()
+          batch_td.reverse()
+          batch_R.reverse()
 
-        sess.run( self.accum_gradients,
-                  feed_dict = {
-                    self.local_network.s: batch_si,
-                    self.local_network.a: batch_a,
-                    self.local_network.td: batch_td,
-                    self.local_network.r: batch_R,
-                    self.local_network.initial_lstm_state: start_lstm_state,
-                    self.local_network.step_size : [len(batch_a)] } )
-      else:
-        sess.run( self.accum_gradients,
-                  feed_dict = {
-                    self.local_network.s: batch_si,
-                    self.local_network.a: batch_a,
-                    self.local_network.td: batch_td,
-                    self.local_network.r: batch_R} )
-        
-      cur_learning_rate = self._anneal_learning_rate(global_t)
+          sess.run( self.accum_gradients,
+                    feed_dict = {
+                      self.local_network.s: batch_si,
+                      self.local_network.a: batch_a,
+                      self.local_network.td: batch_td,
+                      self.local_network.r: batch_R,
+                      self.local_network.initial_lstm_state: start_lstm_state,
+                      self.local_network.step_size : [len(batch_a)] } )
+        else:
+          sess.run( self.accum_gradients,
+                    feed_dict = {
+                      self.local_network.s: batch_si,
+                      self.local_network.a: batch_a,
+                      self.local_network.td: batch_td,
+                      self.local_network.r: batch_R} )
+          
+        cur_learning_rate = self._anneal_learning_rate(global_t)
 
-      sess.run( self.apply_gradients,
-                feed_dict = { self.learning_rate_input: cur_learning_rate } )
+        sess.run( self.apply_gradients,
+                  feed_dict = { self.learning_rate_input: cur_learning_rate } )
 
       # return advanced local step size
       diff_local_t = self.local_t - start_local_t
