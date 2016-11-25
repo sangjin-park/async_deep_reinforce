@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 import tensorflow as tf
 import threading
-import numpy as np
 
 import signal
-import random
 import math
 import os
 import time
