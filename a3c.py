@@ -88,7 +88,7 @@ summary_writer = tf.train.SummaryWriter(options.log_file, sess.graph_def)
 saver = tf.train.Saver(max_to_keep = options.max_to_keep)
 checkpoint = tf.train.get_checkpoint_state(options.checkpoint_dir)
 # for pseudo-count
-psc_info = {"psc_n":0, "psc_vcount":None}
+psc_info = None
 all_gs_info = [None for i in range(options.parallel_size)]
 if checkpoint and checkpoint.model_checkpoint_path:
   saver.restore(sess, checkpoint.model_checkpoint_path)
@@ -168,7 +168,7 @@ def save_data(training_threads):
 
   print('@@@ Data saved at global_t={}'.format(global_t_copy))
 
-
+#@profile
 def train_function(parallel_index):
   global global_t
   global next_save_steps

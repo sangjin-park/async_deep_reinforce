@@ -46,6 +46,7 @@ PSC_BETA = 0.01 # Beta in pseudo-count
 PSC_POW = 2 # Power factor in pseudo-count
 PSC_FRSIZE = 42 # frame size in pseudo-count
 PSC_MAXVAL = 127 # max value of pixels in pseudo-count 
+PSC_MULTI = False # have multiple psc for rooms
 REPEAT_ACTION_PROBABILITY = 0.0 # stochasticity option for ALE
 
 NO_REWARD_TIME  = 15 # Permitted No reward time in seconds
@@ -156,6 +157,7 @@ parser.add_argument('--psc-beta', type=float, default=PSC_BETA)
 parser.add_argument('--psc-pow', type=float, default=PSC_POW)
 parser.add_argument('--psc-frsize', type=int, default=PSC_FRSIZE)
 parser.add_argument('--psc-maxval', type=int, default=PSC_MAXVAL)
+parser.add_argument('--psc-multi', type=str, default=str(PSC_MULTI))
 parser.add_argument('--repeat-action-probability', type=float, default=REPEAT_ACTION_PROBABILITY)
 
 parser.add_argument('--no-reward-time', type=int, default=NO_REWARD_TIME)
@@ -214,6 +216,7 @@ convert_boolean_arg(args, "use_lstm")
 convert_boolean_arg(args, "terminate_on_lives_lost")
 convert_boolean_arg(args, "train_in_eval")
 convert_boolean_arg(args, "psc_use")
+convert_boolean_arg(args, "psc_multi")
 convert_boolean_arg(args, "color_averaging_in_ale")
 convert_boolean_arg(args, "color_maximizing_in_gs")
 convert_boolean_arg(args, "color_averaging_in_gs")

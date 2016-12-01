@@ -87,38 +87,58 @@ class GameState(object):
     if options.psc_use:
       self.psc_frsize = options.psc_frsize
       self.psc_k = options.psc_frsize ** 2
+      self.psc_range_k = np.array([i for i in range(self.psc_k)])
       self.psc_rev_pow = 1.0 / options.psc_pow
       self.psc_alpha = math.pow(0.1, options.psc_pow)
       self.psc_beta = options.psc_beta
       self.psc_maxval = options.psc_maxval
-      self.psc_vcount = np.zeros((self.psc_k, self.psc_maxval + 1), dtype=np.float64)
-      self.psc_n = 0
+      if options.psc_multi:
+        self.psc_vcount = np.zeros((24, self.psc_maxval + 1, self.psc_k), dtype=np.float64)
+        self.psc_n = np.zeros(24, dtype=np.float64)
+      else:
+        self.psc_vcount = np.zeros((self.psc_maxval + 1, self.psc_k), dtype=np.float64)
+        self.psc_n = 0
 
     self.reset()
 
   # for pseudo-count
   def psc_set_psc_info(self, psc_info):
-    if psc_info["psc_n"] != 0:
+    if psc_info is not None:
       self.psc_vcount = np.array(psc_info["psc_vcount"], dtype=np.float64)
-      self.psc_n = psc_info["psc_n"]
+      if options.psc_multi:
+        self.psc_n = np.array(psc_info["psc_n"], dtype=np.float64)
+      else:
+        self.psc_n = psc_info["psc_n"]
  
   def psc_set_gs_info(self, gs_info):
     self.psc_vcount = np.array(gs_info["psc_vcount"], dtype=np.float64)
-    self.psc_n = gs_info["psc_n"]
+    if options.psc_multi:
+      self.psc_n = np.array(gs_info["psc_n"], dtype=np.float64)
+    else:
+      self.psc_n = gs_info["psc_n"]
     self.rooms = gs_info["rooms"]
     self.episode = gs_info["episode"]
  
   # for pseudo-count
+  #@profile
   def psc_add_image(self, psc_image):
     if psc_image.dtype != np.dtype('uint8'):
       print("Internal ERROR in dtype")
       sys.exit(1)
-    k = self.psc_k
-    n = self.psc_n
+    range_k = self.psc_range_k
+    if options.psc_multi:
+      room_no = self.room_no
+      n = self.psc_n[room_no]
+    else:
+      n = self.psc_n
     if n > 0:
       nr = (n + 1.0)/n
-      vcount = self.psc_vcount[range(k), psc_image]
-      self.psc_vcount[range(k), psc_image] += 1.0
+      if options.psc_multi:
+        vcount = self.psc_vcount[room_no, psc_image, range_k]
+        self.psc_vcount[room_no, psc_image, range_k] += 1.0
+      else:
+        vcount = self.psc_vcount[psc_image, range_k]
+        self.psc_vcount[psc_image, range_k] += 1.0
       r_over_rp = np.prod(nr * vcount / (1.0 + vcount))
       dominator = 1.0 - r_over_rp
       if dominator <= 0.0:
@@ -127,21 +147,25 @@ class GameState(object):
       psc_count = r_over_rp / dominator
       psc_reward = self.psc_beta / math.pow(psc_count + self.psc_alpha, self.psc_rev_pow)
     else:
-      self.psc_vcount[range(k), psc_image] += 1.0
-      psc_reward = 0.0
+      if options.psc_multi:
+        self.psc_vcount[room_no, psc_image, range_k] += 1.0
+      else:
+        self.psc_vcount[psc_image, range_k] += 1.0
+      psc_count = 0.0
+      psc_reward = self.psc_beta / math.pow(psc_count + self.psc_alpha, self.psc_rev_pow)
     
-    self.psc_n += 1
+    if options.psc_multi:
+      self.psc_n[room_no] += 1.0
+    else:
+      self.psc_n += 1
 
-    if self.psc_n % (self.options.score_log_interval * 10) == 0:
-      room = -1
-      if self.options.rom == "montezuma_revenge.bin" or self.options.gym_env == "MontezumaRevenge-v0":
-        ram = self.ale.getRAM()
-        room = ram[3]
-      print("[PSC]th={},psc_n={}:room={},psc_reward={:.8f},RM{:02d}".format(self.thread_index, self.psc_n, room, psc_reward, self.room_no))
+    if n % (self.options.score_log_interval * 10) == 0:
+      print("[PSC]th={},psc_n={}:room={},psc_reward={:.8f},RM{:02d}".format(self.thread_index, n, self.room_no, psc_reward, self.room_no))
 
     return psc_reward   
 
   # for montezuma's revenge
+  #@profile
   def update_montezuma_rooms(self):
     ram = self.ale.getRAM()
     # room_no = ram[0x83]
@@ -170,6 +194,7 @@ class GameState(object):
     else:
       pass
 
+  #@profile
   def _process_action(self, action):
     if options.use_gym:
       observation, reward, terminal, _ = self.gym.step(action)
@@ -181,6 +206,7 @@ class GameState(object):
       self._have_prev_screen_RGB = False
       return reward, terminal
     
+  #@profile
   def _process_frame(self, action, reshape):
     if self.terminal:
       reward = 0
@@ -247,7 +273,12 @@ class GameState(object):
     x_t *= (1.0/255.0)
     return reward, terminal, x_t, x_t_uint8
 
+  #@profile
   def pseudo_count(self, x_t):
+    # update covered rooms
+    if self.options.rom == "montezuma_revenge.bin" or self.options.gym_env == "MontezumaRevenge-v0":
+      self.update_montezuma_rooms()
+    
     psc_reward = 0.0
     if self.psc_use:
       psc_image = cv2.resize(x_t, (self.psc_frsize, self.psc_frsize))
@@ -308,6 +339,7 @@ class GameState(object):
 
     self.new_room = -1
     
+  #@profile
   def process(self, action):
     if options.use_gym:
       real_action = action

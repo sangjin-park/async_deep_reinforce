@@ -15,6 +15,12 @@ fi
 
 comment=""
 case $1 in
+  "montezuma-k-b0025-cmax-llrr0-tes45fixed-lstm-fs6")
+    comment="psc_beta=0.025 cmax tes=45, llrr=0, llr=0, lstm, fs=6, greediness=0.01, rar=0.25"
+    rom="montezuma_revenge.bin" 
+    option="--psc-beta=0.025 --color-maximizing-in-gs=True --use-lstm=True --frames-skip-in-gs=6 --color-averaging-in-ale=False --train-episode-steps=45 --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=0.0 --lives-lost-reward=0.0 --psc-use=True --no-reward-time=600 --end-mega-step=100 --log-interval=800 --score-log-interval=100 --max-mega-step=200 --greediness=0.01 --repeat-action-ratio=0.25 --save-best-avg-only=True --save-time-interval=200000 --max-to-keep=20"
+    ;;
+
   "montezuma-k-b002-cmax-llrr0-tes45fixed-lstm-fs6")
     comment="psc_beta=0.02 cmax tes=45, llrr=0, llr=0, lstm, fs=6, greediness=0.01, rar=0.25"
     rom="montezuma_revenge.bin" 
@@ -191,7 +197,7 @@ echo "comment=$comment"
 echo "rom=$rom"
 echo "option=$option"
 
-. activate tensorflow
+#. activate tensorflow
 python $program --rom $rom $option 
 
 
