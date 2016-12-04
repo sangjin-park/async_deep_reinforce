@@ -44,6 +44,8 @@ BASIC_INCOME_TIME  = 10 ** 20 # Basic income time for reward 1.0 in seconds (hug
 PSC_USE = False # use pseudo-count
 PSC_BETA = 0.01 # Beta in pseudo-count
 PSC_POW = 2 # Power factor in pseudo-count
+PSC_BETA_LIST = None # List of psc_beta for each thread
+PSC_POW_LIST = None # List of psc_pow for each thread
 PSC_FRSIZE = 42 # frame size in pseudo-count
 PSC_MAXVAL = 127 # max value of pixels in pseudo-count 
 PSC_MULTI = False # have multiple psc for rooms
@@ -65,6 +67,7 @@ CROP_FRAME = True # Crop frame
 COMPRESS_FRAME = True # Compress frame to reduce memory for screen outpout
 
 TRAIN_EPISODE_STEPS = 0 # train steps for new record (no train if "< LOCAL_T_MAX". record only)
+TES_LIST = None # List of TES for each thread
 REWARD_CLIP = 1.0 # Clip reward by -REWARD_CLIP - REWARD_CLIP. (0.0 means no clip)
 RESET_MAX_REWARD = False # (not used now)
 SCORE_AVERAGING_LENGTH = 100 # Episode score averaging length
@@ -155,6 +158,8 @@ parser.add_argument('--basic-income', type=float, default=None)
 parser.add_argument('--psc-use', type=str, default=str(PSC_USE))
 parser.add_argument('--psc-beta', type=float, default=PSC_BETA)
 parser.add_argument('--psc-pow', type=float, default=PSC_POW)
+parser.add_argument('--psc-beta-list', type=str, default=PSC_BETA_LIST)
+parser.add_argument('--psc-pow-list', type=str, default=PSC_POW_LIST)
 parser.add_argument('--psc-frsize', type=int, default=PSC_FRSIZE)
 parser.add_argument('--psc-maxval', type=int, default=PSC_MAXVAL)
 parser.add_argument('--psc-multi', type=str, default=str(PSC_MULTI))
@@ -179,6 +184,7 @@ parser.add_argument('--stack-frames-in-gs', type=str, default=str(STACK_FRAMES_I
 parser.add_argument('--crop-frame', type=str, default=str(CROP_FRAME))
 parser.add_argument('--compress-frame', type=str, default=str(COMPRESS_FRAME))
 parser.add_argument('--train-episode-steps', type=int, default=TRAIN_EPISODE_STEPS)
+parser.add_argument('--tes-list', type=str, default=TES_LIST)
 parser.add_argument('--reward-clip', type=float, default=REWARD_CLIP)
 parser.add_argument('--reset-max-reward', type=str, default=str(RESET_MAX_REWARD))
 parser.add_argument('--score-averaging-length', type=int, default=SCORE_AVERAGING_LENGTH)
@@ -206,6 +212,9 @@ parser.add_argument('-v', '--verbose', type=str, default=str(VERBOSE))
 
 parser.add_argument('--gym-eval', type=str, default=str(GYM_EVAL))
 
+
+parser.add_argument('--yaml', type=str, default=None)
+
 args = parser.parse_args()
 
 convert_boolean_arg(args, "save_best_avg_only")
@@ -232,6 +241,50 @@ convert_boolean_arg(args, "record_all_non0_record")
 convert_boolean_arg(args, "display")
 convert_boolean_arg(args, "verbose")
 convert_boolean_arg(args, "gym_eval")
+
+# Read in options in yaml file
+if args.yaml is not None:
+  print("yaml=", args.yaml)
+  options_str = open(args.yaml).read()
+  print("content of yaml file:")
+  print(options_str)
+  print("")
+
+  import yaml
+  options_yaml = yaml.load(options_str)
+  if 'psc_beta_list' in options_yaml.keys():
+    args.psc_beta_list = options_yaml['psc_beta_list']
+  if 'psc_pow_list' in options_yaml.keys():
+    args.psc_pow_list = options_yaml['psc_pow_list']
+  if 'tes_list' in options_yaml.keys():
+    args.tes_list = options_yaml['tes_list']
+
+if args.psc_beta_list is not None:
+  args.psc_beta_list = [float(s) for s in args.psc_beta_list.split(",")]
+  if len(args.psc_beta_list) == 1:
+    args.psc_beta_list = args.psc_beta_list * args.parallel_size
+  elif len(args.psc_beta_list) != args.parallel_size:
+    print("len(psc_beta_list) != parallel_size: psc_beta_list=", args.psc_beta_list)
+    sys.exit(1)
+  print("psc_beta_list=", args.psc_beta_list)
+
+if args.psc_pow_list is not None:
+  args.psc_pow_list = [float(s) for s in args.psc_pow_list.split(",")]
+  if len(args.psc_pow_list) == 1:
+    args.psc_pow_list = args.psc_pow_list * args.parallel_size
+  elif len(args.psc_pow_list) != args.parallel_size:
+    print("len(psc_pow_list) != parallel_size: psc_pow_list=", args.psc_pow_list)
+    sys.exit(1)
+  print("psc_pow_list=", args.psc_pow_list)
+
+if args.tes_list is not None:
+  args.tes_list = [int(s) for s in args.tes_list.split(",")]
+  if len(args.tes_list) == 1:
+    args.tes_list = args.tes_list * args.parallel_size
+  elif len(args.tes_list) != args.parallel_size:
+    print("len(tes_list) != parallel_size: tes_list=", args.tes_list)
+    sys.exit(1)
+  print("tes_list=", args.tes_list)
 
 if args.gym_eval:
   if args.record_screen_dir is None:
@@ -332,3 +385,5 @@ if options.verbose:
   print("******************** options ********************")
   print(options)
   print("*************************************************")
+
+

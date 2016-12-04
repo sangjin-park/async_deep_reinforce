@@ -3,6 +3,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 
 from game_ac_network import GameACFFNetwork, GameACLSTMNetwork
+from a3c_training_thread import A3CTrainingThread
 from rmsprop_applier import RMSPropApplier
 
 import options

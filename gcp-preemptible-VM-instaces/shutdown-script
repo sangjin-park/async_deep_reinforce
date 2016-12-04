@@ -1,6 +1,6 @@
 #!/bin/bash
 # You have to change following lines
-export home_dir=/home/itsukara21
+export home_dir=/home/itsukara
 
 # dont' have to change following lines
 MY_COMMAND="python a3c.py"

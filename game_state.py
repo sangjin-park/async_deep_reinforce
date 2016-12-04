@@ -85,12 +85,19 @@ class GameState(object):
     # for pseudo-count
     self.psc_use = options.psc_use
     if options.psc_use:
+      psc_beta = options.psc_beta
+      if options.psc_beta_list is not None:
+        psc_beta = options.psc_beta_list[thread_index]
+      psc_pow = options.psc_pow
+      if options.psc_pow_list is not None:
+        psc_pow = options.psc_pow_list[thread_index]
+      print("[DIVERSITY]th={}:psc_beta={}, psc_pow={}".format(thread_index, psc_beta, psc_pow))
       self.psc_frsize = options.psc_frsize
       self.psc_k = options.psc_frsize ** 2
       self.psc_range_k = np.array([i for i in range(self.psc_k)])
-      self.psc_rev_pow = 1.0 / options.psc_pow
-      self.psc_alpha = math.pow(0.1, options.psc_pow)
-      self.psc_beta = options.psc_beta
+      self.psc_rev_pow = 1.0 / psc_pow
+      self.psc_alpha = math.pow(0.1, psc_pow)
+      self.psc_beta = psc_beta
       self.psc_maxval = options.psc_maxval
       if options.psc_multi:
         self.psc_vcount = np.zeros((24, self.psc_maxval + 1, self.psc_k), dtype=np.float64)

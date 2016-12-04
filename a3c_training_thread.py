@@ -111,8 +111,12 @@ class A3CTrainingThread(object):
       self.episode_values = []
       self.episode_liveses = []
       self.episode_scores = Episode_scores(options)
+      self.tes = self.options.train_episode_steps
+      if self.options.tes_list is not None:
+        self.tes = self.options.tes_list[thread_index]
+        print("[DIVERSITY]th={}:tes={}".format(thread_index, self.tes))
     self.initial_lives = self.game_state.initial_lives
-    self.max_history = int(self.options.train_episode_steps * self.options.tes_extend_ratio * 2.1)
+    self.max_history = int(self.tes * self.options.tes_extend_ratio * 2.1)
 
     if self.options.record_new_record_dir is not None:
       if self.thread_index == 0:
@@ -180,7 +184,7 @@ class A3CTrainingThread(object):
     rewards = []
     values = []
     liveses = [self.game_state.lives]
-    if self.options.train_episode_steps > 0:
+    if self.tes > 0:
       if self.episode_liveses == []:
         self.episode_liveses.append(self.game_state.lives)
 
@@ -240,7 +244,7 @@ class A3CTrainingThread(object):
       rewards.append( reward )
 
       # collect episode log
-      if self.options.train_episode_steps > 0:
+      if self.tes > 0:
         self.episode_states.append(self.game_state.s_t)
         self.episode_actions.append(action)
         self.episode_rewards.append(reward)
@@ -302,7 +306,7 @@ class A3CTrainingThread(object):
       #         self.game_state.prev_room_no, self.game_state.room_no,
       #         self.game_state.lives, value_, self.game_state.psc_reward))
 
-      if self.options.train_episode_steps > 0:
+      if self.tes > 0:
         if self.game_state.lives < self.episode_liveses[-2]:
           elapsed_time = time.time() - self.start_time
           print("t={:6.0f},s={:9d},th={}:{}l={:.0f}>{:.0f}RM{:02d}|".format(
@@ -324,7 +328,7 @@ class A3CTrainingThread(object):
         self._record_score(sess, summary_writer, summary_op, score_input,
                            self.episode_reward, global_t)
           
-        if self.options.train_episode_steps > 0:
+        if self.tes > 0:
           if self.options.record_new_room_dir is not None \
              and self.game_state.new_room >= 0:
             dirname = "s{:09d}-th{}-r{:03.0f}-RM{:02d}".format(global_t,  self.thread_index,\
@@ -392,12 +396,12 @@ class A3CTrainingThread(object):
     if self.options.terminate_on_lives_lost and (self.thread_index == 0) and (not self.options.train_in_eval):
       return 0, terminal_end
     else:
-      if self.options.train_episode_steps > 0:
+      if self.tes > 0:
         _ = self.episode_scores.is_highscore(self.episode_reward)
         if self.episode_reward > self.max_reward:
           self.max_reward = self.episode_reward
           if True:
-            tes = self.options.train_episode_steps
+            tes = self.tes
             # requirement for OpenAI Gym: --test-extend=False
             if self.options.tes_extend and self.initial_lives != 0:
               tes *= self.options.tes_extend_ratio * (self.game_state.lives / self.initial_lives)

@@ -21,15 +21,90 @@ fi
 
 comment=""
 case $1 in
-  "montezuma-u-tes30-b022-pp20-pscm-ff-fs2")
-    comment="tes=30, psc_beta=0.022, psc_pow=2.0, psc_multi=True, frame-skip=2"
+  "montezuma-x-yaml-pscm-ff-fs2")
+    comment="yaml=`hotname`.yaml, psc-multi=True, frame-skip=2"
     gym_env="MontezumaRevenge-v0"
-    option="--use-gym=True --train-episode-steps=30 --psc-beta=0.022 --psc-pow=2.0 --psc-multi=True --frames-skip-in-gs=2 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=400 --score-log-interval=100 --max-mega-step=100 --greediness=0.01 --repeat-action-ratio=0.25 --save-best-avg-only=True --save-time-interval=200000 --max-to-keep=10"
+    option="--yaml=`hostname`.yaml --use-gym=True --train-episode-steps=29 --psc-multi=True --frames-skip-in-gs=2 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=400 --score-log-interval=100 --max-mega-step=100 --greediness=0.01 --repeat-action-ratio=0.25 --save-best-avg-only=True --save-time-interval=200000 --max-to-keep=10"
     ;;
-
-
-
-
+    
+    
+    
+    
+    
+  "montezuma-w-tes29-D10-pscm-ff-fs2")
+    comment="tes=29, DIVERSITY psc-multi=True, frame-skip=2"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=29 --psc-beta-list=0.020,0.020,0.020,0.020,0.020,0.020,0.020,0.020 --psc-pow-list=1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8 --psc-multi=True --frames-skip-in-gs=2 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=400 --score-log-interval=100 --max-mega-step=100 --greediness=0.01 --repeat-action-ratio=0.25 --save-best-avg-only=True --save-time-interval=200000 --max-to-keep=10"
+    ;;
+    
+  "montezuma-w-tes29-D20-pscm-ff-fs2")
+    comment="tes=29, DIVERSITY psc-multi=True, frame-skip=2"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=29 --psc-beta-list=0.020,0.018,0.020,0.018,0.020,0.018,0.020,0.018 --psc-pow-list=1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8 --psc-multi=True --frames-skip-in-gs=2 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=400 --score-log-interval=100 --max-mega-step=100 --greediness=0.01 --repeat-action-ratio=0.25 --save-best-avg-only=True --save-time-interval=200000 --max-to-keep=10"
+    ;;
+    
+  "montezuma-w-tes29-D30-pscm-ff-fs2")
+    comment="tes=29, DIVERSITY psc-multi=True, frame-skip=2"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=29 --psc-beta-list=0.020,0.020,0.020,0.020,0.020,0.020,0.020,0.020 --psc-pow-list=1.8,2.0,1.8,2.0,1.8,2.0,1.8,2.0 --psc-multi=True --frames-skip-in-gs=2 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=400 --score-log-interval=100 --max-mega-step=100 --greediness=0.01 --repeat-action-ratio=0.25 --save-best-avg-only=True --save-time-interval=200000 --max-to-keep=10"
+    ;;
+    
+  "montezuma-w-tes29-D40-pscm-ff-fs2")
+    comment="tes=29, DIVERSITY psc-multi=True, frame-skip=2"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=29 --psc-beta-list=0.020,0.020,0.020,0.020,0.018,0.018,0.018,0.018 --psc-pow-list=1.8,2.0,1.8,2.0,1.8,2.0,1.8,2.0 --psc-multi=True --frames-skip-in-gs=2 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=400 --score-log-interval=100 --max-mega-step=100 --greediness=0.01 --repeat-action-ratio=0.25 --save-best-avg-only=True --save-time-interval=200000 --max-to-keep=10"
+    ;;
+    
+   "montezuma-w-tes29-D50-pscm-ff-fs2")
+    comment="tes=29, DIVERSITY psc-multi=True, frame-skip=2"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=29 --psc-beta-list=0.020,0.020,0.020,0.020,0.020,0.020,0.020,0.020 --psc-pow-list=2.2,2.2,2.2,2.2,1.8,1.8,1.8,1.8 --psc-multi=True --frames-skip-in-gs=2 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=400 --score-log-interval=100 --max-mega-step=100 --greediness=0.01 --repeat-action-ratio=0.25 --save-best-avg-only=True --save-time-interval=200000 --max-to-keep=10"
+    ;;
+    
+  "montezuma-w-tes29-D60-pscm-ff-fs2")
+    comment="tes=29, DIVERSITY psc-multi=True, frame-skip=2"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=29 --psc-beta-list=0.022,0.018,0.022,0.018,0.022,0.018,0.022,0.018 --psc-pow-list=1.8,1.8,1.8,1.8,1.8,1.8,1.8,1.8 --psc-multi=True --frames-skip-in-gs=2 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=400 --score-log-interval=100 --max-mega-step=100 --greediness=0.01 --repeat-action-ratio=0.25 --save-best-avg-only=True --save-time-interval=200000 --max-to-keep=10"
+    ;;
+    
+  "montezuma-w-tes29-D70-pscm-ff-fs2")
+    comment="tes=29, DIVERSITY psc-multi=True, frame-skip=2"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=29 --psc-beta-list=0.020,0.020,0.020,0.020,0.020,0.020,0.020,0.020 --psc-pow-list=1.8,2.2,1.8,2.2,1.8,2.2,1.8,2.2 --psc-multi=True --frames-skip-in-gs=2 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=400 --score-log-interval=100 --max-mega-step=100 --greediness=0.01 --repeat-action-ratio=0.25 --save-best-avg-only=True --save-time-interval=200000 --max-to-keep=10"
+    ;;
+    
+  "montezuma-w-tes29-D80-pscm-ff-fs2")
+    comment="tes=29, DIVERSITY psc-multi=True, frame-skip=2"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=29 --psc-beta-list=0.022,0.022,0.022,0.022,0.018,0.018,0.018,0.018 --psc-pow-list=1.8,2.2,1.8,2.2,1.8,2.2,1.8,2.2 --psc-multi=True --frames-skip-in-gs=2 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=400 --score-log-interval=100 --max-mega-step=100 --greediness=0.01 --repeat-action-ratio=0.25 --save-best-avg-only=True --save-time-interval=200000 --max-to-keep=10"
+    ;;
+    
+    
+    
+    
+  "montezuma-v-tes40-b018-pscm-ff-fs2")
+    comment="tes=40, psc_beta=0.018, psc_multi=True, frame-skip=2"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=40 --psc-beta=0.018 --psc-multi=True --frames-skip-in-gs=2 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=400 --score-log-interval=100 --max-mega-step=100 --greediness=0.01 --repeat-action-ratio=0.25 --save-best-avg-only=True --save-time-interval=200000 --max-to-keep=10"
+    ;;
+    
+  "montezuma-v-tes29-b020-pscm-ff-fs2")
+    comment="tes=29, psc_beta=0.020, psc_multi=True, frame-skip=2"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=29 --psc-beta=0.020 --psc-multi=True --frames-skip-in-gs=2 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=400 --score-log-interval=100 --max-mega-step=100 --greediness=0.01 --repeat-action-ratio=0.25 --save-best-avg-only=True --save-time-interval=200000 --max-to-keep=10"
+    ;;
+    
+    
+    
+  "montezuma-u-tes40-b018-ff-fs2")
+    comment="tes=40, psc_beta=0.018, frame-skip=2"
+    gym_env="MontezumaRevenge-v0"
+    option="--use-gym=True --train-episode-steps=40 --psc-beta=0.018 --frames-skip-in-gs=2 --use-lstm=False --terminate-on-lives-lost=False --tes-extend=False --lives-lost-weight=0.0 --lives-lost-rratio=1.0 --lives-lost-reward=0.0 --psc-use=True --no-reward-time=600 --end-mega-step=200 --log-interval=400 --score-log-interval=100 --max-mega-step=100 --greediness=0.01 --repeat-action-ratio=0.25 --save-best-avg-only=True --save-time-interval=200000 --max-to-keep=10"
+    ;;
+    
+    
+    
+    
     
   "montezuma-t-tes40-b018-pp20-ff-fs2")
     comment="tes=40, psc_beta=0.018, psc_pow=2.0, frame-skip=2"
