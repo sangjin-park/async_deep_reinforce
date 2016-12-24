@@ -1,7 +1,7 @@
 #!/bin/bash
 # You have to change following lines
 export home_dir=/home/itsukara
-export run_dir=/home/itsukara/pscOHL12041610
+export run_dir=/home/itsukara/pscOHL12092300
 export run_command=run-option-gym
 
 # comment out next line after set up above lines
@@ -12,14 +12,14 @@ export run_command=run-option-gym
 
 export host=`hostname`
 case $host in
-  "gcp10") export runset=montezuma-x-yaml-pscm-ff-fs2 ;;
-  "gcp20") export runset=montezuma-x-yaml-pscm-ff-fs2 ;;
-  "gcp30") export runset=montezuma-x-yaml-pscm-ff-fs2 ;;
-  "gcp40") export runset=montezuma-x-yaml-pscm-ff-fs2 ;;
-  "gcp50") export runset=montezuma-x-yaml-pscm-ff-fs2 ;;
-  "gcp60") export runset=montezuma-x-yaml-pscm-ff-fs2 ;;
-  "gcp70") export runset=montezuma-x-yaml-pscm-ff-fs2 ;;
-  "gcp80") export runset=montezuma-x-yaml-pscm-ff-fs2 ;;
+  "gcp10") export runset=montezuma-y-yaml-pscm-ff-fs2 ;;
+  "gcp20") export runset=montezuma-y-yaml-pscm-ff-fs2 ;;
+  "gcp30") export runset=montezuma-y-yaml-pscm-ff-fs2 ;;
+  "gcp40") export runset=montezuma-y-yaml-pscm-ff-fs2 ;;
+  "gcp50") export runset=montezuma-y-yaml-pscm-ff-fs2 ;;
+  "gcp60") export runset=montezuma-y-yaml-pscm-ff-fs2 ;;
+  "gcp70") export runset=montezuma-y-yaml-pscm-ff-fs2 ;;
+  "gcp80") export runset=montezuma-y-yaml-pscm-ff-fs2 ;;
 esac
 
 
