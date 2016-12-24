@@ -4,7 +4,7 @@ Asynchronous deep reinforcement learning + Pseudo-count based reward + On-highsc
 
 ## About
 
-This code is fork from [miyosuda's code](https://github.com/miyosuda/async_deep_reinforce). I added many functions for my Deep Learning experiments. Of which, pseudo-count based reward based on following DeepMind's paper and on-highscore-learning (my original) enable over 500 point average score in Montezuma's Revenge, which is higher than the paper as for A3C.
+This code is fork from [miyosuda's code](https://github.com/miyosuda/async_deep_reinforce). I added many functions for my Deep Learning experiments. Of which, pseudo-count based reward based on following DeepMind's paper and on-highscore-learning (my original) enable over 1500 point average score in Montezuma's Revenge, which is higher than the paper as for A3C.
  
 [https://arxiv.org/abs/1606.01868 (Unifying Count-Based Exploration and Intrinsic Motivation, DeepMind)](https://arxiv.org/abs/1606.01868)
 
@@ -25,7 +25,7 @@ See following slide (in Japanese) for Japanese explanation.
 
 The following graph is the average score of Montezuma's Revenge.
 
-![learning result after 39M steps](https://github.com/Itsukara/async_deep_reinforce/blob/master/learning-curves/montezuma-psc-39M.png)
+![learning result after 39M steps](https://cdn-ak.f.st-hatena.com/images/fotolife/I/Itsukara/20160902/20160902172341.png)
 
 0 - 30M steps: Pseudo-count based reward is ON.
 
@@ -36,6 +36,23 @@ The following graph is the average score of Montezuma's Revenge.
 The following graph is the best Learning Curve of Montezuma's Revenge (2016/10/7). Best score is 2500 and peak average score is more than 1500 point. 
  
 ![best learning result](https://cdn-ak.f.st-hatena.com/images/fotolife/I/Itsukara/20161007/20161007134815.png)
+
+
+## Explored Rooms
+
+- My result
+The following picture indicates the rooms explored in my all trainings. 
+
+![explored rooms in my trainings](https://cdn-ak.f.st-hatena.com/images/fotolife/I/Itsukara/20161205/20161205234507.png)
+
+This is better than DeepMind result (see next picture). This was achieved in OpenAI Gym environment only. In ALE environment, although the average score is higher than OpenAI Gym, the number of explored rooms is less than that of OpenAI Gym.
+
+- DeepMind's result
+The rooms expolred in DeepMind paper (all in all).
+
+![explored rooms in DeepMind's trainings](https://cdn-ak.f.st-hatena.com/images/fotolife/I/Itsukara/20161225/20161225040856.png)
+
+
 
 ## Play movie
 
