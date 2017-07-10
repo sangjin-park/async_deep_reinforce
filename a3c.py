@@ -72,15 +72,15 @@ for i in range(options.parallel_size):
 sess = tf.Session(config=tf.ConfigProto(log_device_placement=False, gpu_options = {'allow_growth': True},
                                         allow_soft_placement=True))
 
-init = tf.initialize_all_variables()
+init = tf.global_variables_initializer()
 sess.run(init)
 
 # summary for tensorboard
 score_input = tf.placeholder(tf.int32)
-tf.scalar_summary("score", score_input)
+tf.summary.scalar("score", score_input)
 
-summary_op = tf.merge_all_summaries()
-summary_writer = tf.train.SummaryWriter(options.log_file, sess.graph_def)
+summary_op = tf.summary.merge_all()
+summary_writer = tf.summary.FileWriter(options.log_file, sess.graph_def)
 
 # init or load checkpoint with saver
 saver = tf.train.Saver(max_to_keep = options.max_to_keep)

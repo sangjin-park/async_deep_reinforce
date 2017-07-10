@@ -43,7 +43,7 @@ class AccumTrainer(object):
     with tf.device(self._device):
       accumulate_ops = []
     
-      with tf.op_scope([], name, self._name) as name:
+      with tf.name_scope(values=[], name=name, default_name=self._name) as name:
         for var, grad, accum_grad in zip(self._var_list, self._grad_list, self._accum_grad_list):
           with tf.name_scope("accum_" + var.op.name):
             accumulate_ops.append( tf.assign_add(accum_grad, grad) )
@@ -53,7 +53,7 @@ class AccumTrainer(object):
     with tf.device(self._device):
       reset_ops = []
 
-      with tf.op_scope([], name, self._name) as name:
+      with tf.name_scope(values=[], name=name, default_name=self._name) as name:
         for var, accum_grad in zip(self._var_list, self._accum_grad_list):
           with tf.name_scope("reset_" + var.op.name):
             zero = tf.zeros(accum_grad.get_shape())

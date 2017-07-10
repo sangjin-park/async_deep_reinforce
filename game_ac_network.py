@@ -24,10 +24,10 @@ class GameACNetwork(object):
       log_pi = tf.log(tf.clip_by_value(self.pi, 1e-20, 1.0))
 
       # policy entropy
-      entropy = -tf.reduce_sum(self.pi * log_pi, reduction_indices=1)
+      entropy = -tf.reduce_sum(self.pi * log_pi, axis=1)
       
       # policy loss (output)  (Adding minus, because the original paper's objective function is for gradient ascent, but we use gradient descent optimizer.)
-      policy_loss = - tf.reduce_sum( tf.reduce_sum( tf.mul( log_pi, self.a ), reduction_indices=1 ) * self.td + entropy * entropy_beta )
+      policy_loss = - tf.reduce_sum( tf.reduce_sum( tf.multiply( log_pi, self.a ), axis=1 ) * self.td + entropy * entropy_beta )
 
       # R (input for value)
       self.r = tf.placeholder("float", [None])
@@ -58,7 +58,7 @@ class GameACNetwork(object):
     sync_ops = []
 
     with tf.device(self._device):
-      with tf.op_scope([], name, "GameACNetwork") as name:
+      with tf.name_scope(values=[], name=name, default_name="GameACNetwork") as name:
         for(src_var, dst_var) in zip(src_vars, dst_vars):
           sync_op = tf.assign(dst_var, src_var)
           sync_ops.append(sync_op)

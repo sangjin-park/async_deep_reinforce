@@ -28,7 +28,7 @@ else:
   global_network = GameACFFNetwork(options.action_size, device)
 
 sess = tf.Session()
-init = tf.initialize_all_variables()
+init = tf.global_variables_initializer()
 sess.run(init)
 
 saver = tf.train.Saver()

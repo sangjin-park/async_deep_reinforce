@@ -21,7 +21,7 @@ class RMSPropApplierTest(tf.test.TestCase):
       apply_gradient0 = opt.apply_gradients([var], [grad0])
       apply_gradient1 = opt.apply_gradients([var], [grad1])
 
-      tf.initialize_all_variables().run()
+      tf.global_variables_initializer().run()
 
       # grad0を反映
       apply_gradient0.run()
