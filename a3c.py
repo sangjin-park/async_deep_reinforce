@@ -69,7 +69,7 @@ for i in range(options.parallel_size):
   training_threads.append(training_thread)
 
 # prepare session
-sess = tf.Session(config=tf.ConfigProto(log_device_placement=False,
+sess = tf.Session(config=tf.ConfigProto(log_device_placement=False, gpu_options = {'allow_growth': True},
                                         allow_soft_placement=True))
 
 init = tf.initialize_all_variables()

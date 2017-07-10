@@ -58,7 +58,10 @@ class GameState(object):
       
       AtariEnv._seed = _seed
       self.gym = gym.make(options.gym_env)
-      self.ale = self.gym.ale
+      try:
+        self.ale = self.gym.ale
+      except:
+        self.ale = self.gym.env.ale
       print(self.gym.action_space)
     else:
       if display:
