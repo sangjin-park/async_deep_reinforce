@@ -215,6 +215,8 @@ parser.add_argument('--gym-eval', type=str, default=str(GYM_EVAL))
 
 parser.add_argument('--yaml', type=str, default=None)
 
+parser.add_argument('--reduce-actionset', type=str, default='True')
+
 args = parser.parse_args()
 
 convert_boolean_arg(args, "save_best_avg_only")
@@ -241,6 +243,8 @@ convert_boolean_arg(args, "record_all_non0_record")
 convert_boolean_arg(args, "display")
 convert_boolean_arg(args, "verbose")
 convert_boolean_arg(args, "gym_eval")
+
+convert_boolean_arg(args, "reduce_actionset")
 
 # Read in options in yaml file
 if args.yaml is not None:
@@ -367,7 +371,7 @@ if args.randomness is None:
 if args.randomness_log_interval is None:
   args.randomness_log_interval = args.randomness_steps / args.randomness_log_num
 
-def peekActionSize(rom):
+def peekActionSize0(rom):
   if args.use_gym:
     import gym
     env = gym.make(args.gym_env)
@@ -377,6 +381,15 @@ def peekActionSize(rom):
     ale = ALEInterface()
     ale.loadROM(rom.encode('ascii'))
     return len(ale.getMinimalActionSet())
+
+reduced_actionset = [0, 1, 2, 3, 4, 5, 11, 12]
+def peekActionSize(rom):
+  n = peekActionSize0(rom)
+
+  if args.reduce_actionset and n == 18:
+    return len(reduced_actionset)
+  else:
+    return n
 
 args.action_size = peekActionSize(args.rom)
 

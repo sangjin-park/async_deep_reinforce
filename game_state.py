@@ -40,6 +40,8 @@ class GameState(object):
     self.prev_room_no = 1
     self.room_no = 1
     self.new_room = -1
+    self.seen_actions = set()
+
 
     if options.use_gym:
       # see https://github.com/openai/gym/issues/349
@@ -62,6 +64,14 @@ class GameState(object):
         self.ale = self.gym.ale
       except:
         self.ale = self.gym.env.ale
+
+      if options.reduce_actionset:
+        from gym.spaces.discrete import Discrete
+        import options as options0
+        self.gym.env._action_set = np.array(options0.reduced_actionset)
+        self.gym.env.action_space = Discrete(len(self.gym.env._action_set))
+        self.gym.action_space = self.gym.env.action_space
+
       print(self.gym.action_space)
     else:
       if display:
@@ -237,6 +247,11 @@ class GameState(object):
       terminal = self.ale.game_over()
       self.terminal = terminal
 
+    if options.display:
+      from gym.envs.atari.atari_env import ACTION_MEANING
+      self.seen_actions.add(action)
+      print(action, ACTION_MEANING[action], reward, terminal, self.seen_actions, len(self.seen_actions))
+
     # screen shape is (210, 160, 1)
     if self.color_maximizing or self.color_averaging: # impossible in gym
       self.ale.getScreenRGB(self._screen_RGB)
@@ -353,7 +368,7 @@ class GameState(object):
   def process(self, action):
     if options.use_gym:
       real_action = action
-      if self._display:
+      if self._display and self.thread_index == 2:
         self.gym.render()
     else:
       # convert original 18 action index to minimal action set index
