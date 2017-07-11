@@ -368,7 +368,7 @@ class GameState(object):
   def process(self, action):
     if options.use_gym:
       real_action = action
-      if self._display and self.thread_index == 2:
+      if self._display: # and self.thread_index == 2:
         self.gym.render()
     else:
       # convert original 18 action index to minimal action set index

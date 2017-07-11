@@ -31,7 +31,7 @@ USE_LSTM = False # True for A3C LSTM, False for A3C FF
 
 MAX_PLAY_TIME  = 300 # Max play time in seconds
 
-TERMINATE_ON_LIVES_LOST = False # Terminate game if lives lost
+TERMINATE_ON_LIVES_LOST = True # Terminate game if lives lost
 TRAIN_IN_EVAL = False # Train in evaluation thread(thread 0) in "TERMINATE_ON_LIVES_LOST mode"
 
 NUM_EXPERIMENTS = 1 # number of experiments to determin action
@@ -305,7 +305,7 @@ if args.use_gym:
     print("Can not specify stack-frames-in-gs because OpenAI Gym skips 2 - 4 frames randomly")
     sys.exit(1)
   # Requirement for OpenAI Gym
-  args.terminate_on_lives_lost = False
+  # args.terminate_on_lives_lost = False
   args.tes_extend = False
   args.clear_history_on_death = False
 
