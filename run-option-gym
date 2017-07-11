@@ -872,6 +872,7 @@ echo "option=$option"
 
 . activate tensorflow
 #python $program --gym-env $gym_env $option 
+echo $program --gym-env $gym_env $option 
 $program --gym-env $gym_env $option 
 
 

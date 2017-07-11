@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 import tensorflow as tf
+try:
+  from tensorflow.python.ops.rnn_cell import RNNCell
+except:
+  #tf 1.1 or 1.2
+  from tensorflow.python.ops.rnn_cell_impl import _RNNCell as RNNCell
 
-from tensorflow.python.ops.rnn_cell import RNNCell
 
 class CustomBasicLSTMCell(RNNCell):
   """Custom Basic LSTM recurrent network cell.
