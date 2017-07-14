@@ -32,15 +32,22 @@ init = tf.global_variables_initializer()
 sess.run(init)
 
 saver = tf.train.Saver()
+model_checkpoint_path = None
 checkpoint = tf.train.get_checkpoint_state(options.checkpoint_dir)
+if checkpoint == None:
+  checkpoint = tf.train.get_checkpoint_state(os.path.dirname(options.checkpoint_dir))
+  model_checkpoint_path = os.path.join(os.path.dirname(options.checkpoint_dir), os.path.basename(options.checkpoint_dir))
+
 # for pseudo-count
 psc_info = {"psc_n":0, "psc_vcount":None}
 if checkpoint and checkpoint.model_checkpoint_path:
+  if model_checkpoint_path:
+    checkpoint.model_checkpoint_path = model_checkpoint_path
   saver.restore(sess, checkpoint.model_checkpoint_path)
   print("checkpoint loaded:", checkpoint.model_checkpoint_path)
   tokens = checkpoint.model_checkpoint_path.split("-")
   # set global step
-  global_t = int(tokens[1])
+  global_t = int(tokens[-1])
   print(">>> global step set: ", global_t)
   # for pseudo-count
   if options.psc_use:
@@ -51,9 +58,11 @@ if checkpoint and checkpoint.model_checkpoint_path:
       print("psc_info loaded:", psc_fname)
     else:
       print("psc_info does not exist and not loaded:", psc_fname)
+else:
+  print('checkpoint not loaded', options.checkpoint_dir, checkpoint)
+  sys.exit(0)
 
-
-game_state = GameState(0, options, display=options.display, no_op_max=30, thread_index=0)
+game_state = GameState(0, options, display=options.display, no_op_max=30, thread_index=1)
 
 # for pseudo-count
 if options.psc_use:

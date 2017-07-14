@@ -93,7 +93,7 @@ if checkpoint and checkpoint.model_checkpoint_path:
   print("checkpoint loaded:", checkpoint.model_checkpoint_path)
   tokens = checkpoint.model_checkpoint_path.split("-")
   # set global step
-  global_t = int(tokens[1])
+  global_t = int(tokens[-1])
   print(">>> global step set: ", global_t)
   # set wall time
   wall_t_fname = options.checkpoint_dir + '/' + 'wall_t.' + str(global_t)

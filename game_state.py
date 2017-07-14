@@ -247,7 +247,7 @@ class GameState(object):
       terminal = self.ale.game_over()
       self.terminal = terminal
 
-    if options.display:
+    if options.display and self.thread_index == 1:
       from gym.envs.atari.atari_env import ACTION_MEANING
       self.seen_actions.add(action)
       print(action, ACTION_MEANING[action], reward, terminal, self.seen_actions, len(self.seen_actions))
@@ -354,7 +354,7 @@ class GameState(object):
     self.lives = float(self.ale.lives())
     self.initial_lives = self.lives
 
-    if (self.thread_index == 0) and (self.record_gs_screen_dir is not None):
+    if (self.thread_index == 1) and (self.record_gs_screen_dir is not None):
       episode_dir = "episode{:03d}".format(self.episode)
       self.episode_record_dir = os.path.join(self.record_gs_screen_dir, episode_dir)
       os.makedirs(self.episode_record_dir)
@@ -368,7 +368,7 @@ class GameState(object):
   def process(self, action):
     if options.use_gym:
       real_action = action
-      if self._display: # and self.thread_index == 2:
+      if self._display and self.thread_index == 1:
         self.gym.render()
     else:
       # convert original 18 action index to minimal action set index
