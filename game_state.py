@@ -119,6 +119,8 @@ class GameState(object):
         self.psc_vcount = np.zeros((self.psc_maxval + 1, self.psc_k), dtype=np.float64)
         self.psc_n = 0
 
+      self.r_c_max = 0
+
     self.reset()
 
   # for pseudo-count
@@ -182,6 +184,12 @@ class GameState(object):
     if n % (self.options.score_log_interval * 10) == 0:
       print("[PSC]th={},psc_n={}:room={},psc_reward={:.8f},RM{:02d}".format(self.thread_index, n, self.room_no, psc_reward, self.room_no))
 
+    alpha = 1.0
+    r_max = 0.9
+
+    self.r_c_max = max(self.r_c_max, 1 - psc_reward)
+
+    psc_reward = alpha * min(r_max, (1 - psc_reward) / self.r_c_max)
     return psc_reward   
 
   # for montezuma's revenge
@@ -348,6 +356,8 @@ class GameState(object):
     _, _, x_t, x_t_uint8 = self._process_frame(0, False)
     _ = self.pseudo_count(x_t_uint8)
     
+    self.r_c_max = 0
+
     self.reward = 0
     self.s_t = np.stack((x_t, x_t, x_t, x_t), axis = 2)
 
